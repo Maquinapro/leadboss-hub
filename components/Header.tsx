@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 
@@ -36,20 +37,47 @@ export default function Header({ userEmail }: HeaderProps) {
         marginBottom: '32px',
       }}
     >
-      <div>
-        <div className="brand-caps">Leadboss</div>
-        <h1
-          className="font-serif"
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        {/* Logo circular */}
+        <div
           style={{
-            fontWeight: 600,
-            fontSize: 'clamp(32px, 5vw, 48px)',
-            lineHeight: 1,
-            letterSpacing: '-0.02em',
-            marginTop: '6px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: '#ffffff',
+            border: '1px solid var(--line)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            flexShrink: 0,
           }}
         >
-          Hub
-        </h1>
+          <Image
+            src="/leadboss-logo.png"
+            alt="Leadboss"
+            width={48}
+            height={48}
+            style={{ objectFit: 'contain' }}
+            priority
+          />
+        </div>
+
+        <div>
+          <div className="brand-caps">Leadboss</div>
+          <h1
+            className="font-serif"
+            style={{
+              fontWeight: 600,
+              fontSize: 'clamp(28px, 4vw, 40px)',
+              lineHeight: 1,
+              letterSpacing: '-0.02em',
+              marginTop: '4px',
+            }}
+          >
+            Hub
+          </h1>
+        </div>
       </div>
 
       <div style={{ textAlign: 'right', fontSize: '12px', color: 'var(--ink-muted)', lineHeight: 1.5 }}>
