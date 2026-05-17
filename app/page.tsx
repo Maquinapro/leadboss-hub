@@ -1,65 +1,132 @@
-import Image from "next/image";
+import { createClient } from '@/lib/supabase-server'
+import { redirect } from 'next/navigation'
+import Header from '@/components/Header'
 
-export default function Home() {
+export default async function DashboardPage() {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: clientesAtivos } = await supabase
+    .from('clientes')
+    .select('id, valor_mensal')
+    .eq('status', 'ativo')
+
+  const inicioMes = new Date()
+  inicioMes.setDate(1)
+  inicioMes.setHours(0, 0, 0, 0)
+
+  const fimMes = new Date(inicioMes)
+  fimMes.setMonth(fimMes.getMonth() + 1)
+
+  const { data: pagamentosMes } = await supabase
+    .from('pagamentos')
+    .select('valor, status')
+    .gte('mes_referencia', inicioMes.toISOString().split('T')[0])
+    .lt('mes_referencia', fimMes.toISOString().split('T')[0])
+
+  const totalClientesAtivos = clientesAtivos?.length || 0
+  const receitaPrevista = (clientesAtivos || []).reduce(
+    (sum, c) => sum + Number(c.valor_mensal || 0),
+    0
+  )
+  const recebido = (pagamentosMes || [])
+    .filter((p) => p.status === 'pago')
+    .reduce((sum, p) => sum + Number(p.valor || 0), 0)
+  const inadimplentes = (pagamentosMes || []).filter(
+    (p) => p.status === 'atrasado'
+  ).length
+
+  const formatMoeda = (v: number) =>
+    v.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    })
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 20px 80px' }}>
+      <Header userEmail={user.email} />
+
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px',
+        background: 'var(--line)', border: '1px solid var(--line)',
+        marginBottom: '28px', borderRadius: '4px', overflow: 'hidden',
+      }}>
+        <StatCard label="Clientes ativos" value={String(totalClientesAtivos)} sub="contas no mês" />
+        <StatCard label="Receita prevista" value={formatMoeda(receitaPrevista)} sub="este mês" />
+        <StatCard label="Recebido" value={formatMoeda(recebido)} sub="já entrou no caixa" color="var(--green)" />
+        <StatCard label="Inadimplentes" value={String(inadimplentes)} sub="faturas atrasadas" color={inadimplentes > 0 ? 'var(--accent)' : undefined} />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+        <NavCard href="/clientes" label="Clientes" description="Cadastro, listagem e detalhes dos clientes da agência" available />
+        <NavCard href="/pagamentos" label="Pagamentos" description="Controle de faturas, recebimentos e inadimplência" available />
+        <NavCard href="/campanhas" label="Campanhas" description="KPIs de Meta, Google e LinkedIn Ads por cliente" available />
+      </div>
     </div>
-  );
+  )
+}
+
+function StatCard({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {
+  return (
+    <div style={{ background: 'var(--bg-card)', padding: '20px 22px' }}>
+      <div style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '8px', fontWeight: 600 }}>
+        {label}
+      </div>
+      <div className="font-serif" style={{ fontSize: '32px', fontWeight: 600, lineHeight: 1, letterSpacing: '-0.02em', color: color || 'var(--ink)' }}>
+        {value}
+      </div>
+      <div style={{ fontSize: '12px', color: 'var(--ink-soft)', marginTop: '6px' }}>
+        {sub}
+      </div>
+    </div>
+  )
+}
+
+function NavCard({ href, label, description, available }: { href: string; label: string; description: string; available?: boolean }) {
+  const content = (
+    <div style={{
+      background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px',
+      padding: '24px', height: '100%', opacity: available ? 1 : 0.55,
+      cursor: available ? 'pointer' : 'default', transition: 'all 0.15s',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <h3 className="font-serif" style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.01em' }}>
+          {label}
+        </h3>
+        {!available && (
+          <span style={{
+            fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase',
+            padding: '4px 9px', borderRadius: '3px', fontWeight: 600,
+            background: 'var(--line-soft)', color: 'var(--ink-muted)',
+          }}>
+            Em breve
+          </span>
+        )}
+      </div>
+      <p style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: '16px' }}>
+        {description}
+      </p>
+      {available && (
+        <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 500 }}>
+          Acessar →
+        </span>
+      )}
+    </div>
+  )
+
+  if (!available) return content
+  return (
+    <a href={href} style={{ display: 'block', height: '100%' }}>
+      {content}
+    </a>
+  )
 }
