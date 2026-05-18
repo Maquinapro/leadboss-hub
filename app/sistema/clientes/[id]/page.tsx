@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 import ClienteHistorico from '@/components/ClienteHistorico'
 import ClientePagamentos from '@/components/ClientePagamentos'
+import ClienteCampanhas from '@/components/ClienteCampanhas'
 
 type Plano = {
   id: string
@@ -431,16 +432,13 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
 )}
 
 {activeTab === 'campanhas' && (
-  <div style={{ background: 'var(--bg-card)', border: '1px dashed var(--line)', borderRadius: '6px', padding: '60px 20px', textAlign: 'center', color: 'var(--ink-muted)' }}>
-    <div className="font-serif" style={{ fontSize: '48px', fontStyle: 'italic', color: 'var(--line)', marginBottom: '8px' }}>*</div>
-    <h3 className="font-serif" style={{ fontSize: '20px', color: 'var(--ink)', marginBottom: '8px', fontWeight: 600 }}>
-      Em breve
-    </h3>
-    <p style={{ fontSize: '14px' }}>
-      Essa seção vai ser construída na próxima etapa.
-    </p>
-  </div>
-)}
+        <ClienteCampanhas cliente={{
+          id: cliente.id,
+          nome: cliente.nome,
+          plataformas: cliente.plataformas,
+          meta_cpl_padrao: cliente.meta_cpl_padrao,
+        }} />
+      )}
     </div>
   )
 }
