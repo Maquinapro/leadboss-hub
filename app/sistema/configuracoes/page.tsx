@@ -44,7 +44,7 @@ export default function ConfiguracoesPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        router.push('/login')
+        router.push('/sistema/login')
         return
       }
       setUserEmail(user.email || '')
@@ -173,7 +173,7 @@ export default function ConfiguracoesPage() {
       <Header userEmail={userEmail} />
 
       <div style={{ marginBottom: '24px' }}>
-        <Link href="/" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+        <Link href="/sistema" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
           ← Dashboard
         </Link>
         <h2 className="font-serif" style={{ fontSize: '36px', fontWeight: 600, letterSpacing: '-0.02em', marginTop: '8px', lineHeight: 1 }}>

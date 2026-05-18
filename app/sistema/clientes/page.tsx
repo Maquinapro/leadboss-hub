@@ -41,7 +41,7 @@ export default function ClientesPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        router.push('/login')
+        router.push('/sistema/login')
         return
       }
       setUserEmail(user.email || '')
@@ -105,7 +105,7 @@ export default function ClientesPage() {
         marginBottom: '24px', gap: '16px', flexWrap: 'wrap',
       }}>
         <div>
-          <Link href="/" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+          <Link href="/sistema" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
             ← Dashboard
           </Link>
           <h2 className="font-serif" style={{ fontSize: '36px', fontWeight: 600, letterSpacing: '-0.02em', marginTop: '8px', lineHeight: 1 }}>
@@ -113,7 +113,7 @@ export default function ClientesPage() {
           </h2>
         </div>
 
-        <Link href="/clientes/novo" style={{
+        <Link href="/sistema/clientes/novo" style={{
           background: 'var(--ink)', color: 'var(--bg)', padding: '12px 20px', borderRadius: '4px',
           fontSize: '14px', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '8px',
         }}>
@@ -168,7 +168,7 @@ export default function ClientesPage() {
               : 'Tente ajustar os filtros ou a busca.'}
           </p>
           {clientes.length === 0 && (
-            <Link href="/clientes/novo" style={{
+            <Link href="/sistema/clientes/novo" style={{
               background: 'var(--ink)', color: 'var(--bg)', padding: '10px 18px', borderRadius: '4px',
               fontSize: '14px', fontWeight: 500, display: 'inline-block',
             }}>

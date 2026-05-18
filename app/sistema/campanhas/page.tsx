@@ -88,7 +88,7 @@ export default function CampanhasPage() {
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      router.push('/login')
+      router.push('/sistema/login')
       return
     }
     setUserEmail(user.email || '')
@@ -268,7 +268,7 @@ export default function CampanhasPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <Link href="/" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+          <Link href="/sistema" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
             ← Dashboard
           </Link>
           <h2 className="font-serif" style={{ fontSize: '36px', fontWeight: 600, letterSpacing: '-0.02em', marginTop: '8px', lineHeight: 1 }}>

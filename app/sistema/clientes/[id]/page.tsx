@@ -172,7 +172,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
       alert('Erro ao excluir: ' + delError.message)
       return
     }
-    router.push('/clientes')
+    router.push('/sistema/clientes')
     router.refresh()
   }
 
@@ -188,7 +188,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     return (
       <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '60px 20px', textAlign: 'center' }}>
         <p style={{ color: 'var(--ink-muted)', marginBottom: '16px' }}>Cliente não encontrado.</p>
-        <Link href="/clientes" style={{ textDecoration: 'underline' }}>← Voltar para clientes</Link>
+        <Link href="/sistema/clientes" style={{ textDecoration: 'underline' }}>← Voltar para clientes</Link>
       </div>
     )
   }
@@ -226,7 +226,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
 
   return (
     <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '24px 20px 80px' }}>
-      <Link href="/clientes" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+      <Link href="/sistema/clientes" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
         ← Clientes
       </Link>
 

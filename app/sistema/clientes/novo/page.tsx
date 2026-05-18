@@ -107,7 +107,7 @@ export default function NovoClientePage() {
       return
     }
 
-    router.push('/clientes')
+    router.push('/sistema/clientes')
     router.refresh()
   }
 
@@ -134,7 +134,7 @@ export default function NovoClientePage() {
     <div style={{ maxWidth: '720px', margin: '0 auto', padding: '24px 20px 80px' }}>
       <div style={{ marginBottom: '24px' }}>
         <Link
-          href="/clientes"
+          href="/sistema/clientes"
           style={{
             fontSize: '12px',
             color: 'var(--ink-muted)',
@@ -367,7 +367,7 @@ export default function NovoClientePage() {
 
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
           <Link
-            href="/clientes"
+            href="/sistema/clientes"
             style={{
               padding: '12px 20px',
               borderRadius: '4px',
