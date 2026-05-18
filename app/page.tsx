@@ -6,7 +6,7 @@ const WHATSAPP_URL = 'https://wa.me/5511917139765?text=Ol%C3%A1%2C%20vim%20pelo%
 export default function HomePage() {
   return (
     <main style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
-      {/* ===== NAV ===== */}
+      {/* ===== NAV RESPONSIVA ===== */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 50,
         background: 'rgba(245, 241, 234, 0.92)',
@@ -15,10 +15,11 @@ export default function HomePage() {
       }}>
         <div style={{
           maxWidth: '1200px', margin: '0 auto',
-          padding: '16px 24px',
+          padding: '14px 20px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          gap: '12px',
         }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             <div style={{
               width: '40px', height: '40px', borderRadius: '50%',
               background: '#ffffff', border: '1px solid var(--line)',
@@ -27,27 +28,36 @@ export default function HomePage() {
             }}>
               <Image src="/leadboss-logo.png" alt="Leadboss Ads" width={34} height={34} style={{ objectFit: 'contain' }} priority />
             </div>
-            <span className="font-serif" style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.01em' }}>
+            <span className="font-serif" style={{ fontSize: '20px', fontWeight: 600, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
               Leadboss Ads
             </span>
           </Link>
-          <div style={{ display: 'flex', gap: '28px', alignItems: 'center', fontSize: '14px' }}>
+
+          <div className="nav-desktop" style={{ alignItems: 'center', fontSize: '14px' }}>
             <a href="#para-quem" style={{ color: 'var(--ink-soft)' }}>Para quem</a>
             <a href="#como-funciona" style={{ color: 'var(--ink-soft)' }}>Como funciona</a>
             <a href="#planos" style={{ color: 'var(--ink-soft)' }}>Planos</a>
             <a href={WHATSAPP_URL} target="_blank" style={{
               background: 'var(--ink)', color: 'var(--bg)',
-              padding: '8px 18px', borderRadius: '4px', fontWeight: 500,
+              padding: '8px 18px', borderRadius: '4px', fontWeight: 500, whiteSpace: 'nowrap',
             }}>
               Falar com especialista
             </a>
           </div>
+
+          <a href={WHATSAPP_URL} target="_blank" className="nav-mobile-cta" style={{
+            background: 'var(--ink)', color: 'var(--bg)',
+            padding: '9px 18px', borderRadius: '4px', fontWeight: 500, fontSize: '13px',
+            whiteSpace: 'nowrap', flexShrink: 0,
+          }}>
+            Falar
+          </a>
         </div>
       </nav>
 
       {/* ===== HERO CENTRALIZADO ===== */}
       <section style={{
-        padding: '120px 24px 100px',
+        padding: 'clamp(60px, 10vw, 120px) 24px clamp(60px, 8vw, 100px)',
         maxWidth: '1200px', margin: '0 auto',
         textAlign: 'center',
       }}>
@@ -56,13 +66,13 @@ export default function HomePage() {
             * Tráfego pago para negócios locais
           </div>
           <h1 className="font-serif" style={{
-            fontSize: 'clamp(44px, 7vw, 84px)', fontWeight: 600,
+            fontSize: 'clamp(38px, 7vw, 84px)', fontWeight: 600,
             letterSpacing: '-0.03em', lineHeight: 1.02, marginBottom: '28px',
           }}>
             Mais visibilidade, <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>mais clientes.</em>
           </h1>
           <p style={{
-            fontSize: 'clamp(18px, 2.4vw, 22px)', color: 'var(--ink-soft)',
+            fontSize: 'clamp(16px, 2.4vw, 22px)', color: 'var(--ink-soft)',
             lineHeight: 1.5, marginBottom: '40px',
             maxWidth: '700px', margin: '0 auto 40px',
           }}>
@@ -71,13 +81,13 @@ export default function HomePage() {
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href={WHATSAPP_URL} target="_blank" style={{
               background: 'var(--ink)', color: 'var(--bg)',
-              padding: '16px 36px', borderRadius: '4px', fontWeight: 500,
+              padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
               fontSize: '15px',
             }}>
               Fale com um especialista →
             </a>
             <a href="#planos" style={{
-              padding: '16px 36px', borderRadius: '4px', fontWeight: 500,
+              padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
               fontSize: '15px', border: '1px solid var(--line)', color: 'var(--ink-soft)',
             }}>
               Ver planos
@@ -98,7 +108,7 @@ export default function HomePage() {
             }}>
               {['Meta', 'Google', 'LinkedIn', 'TikTok'].map((p) => (
                 <span key={p} className="font-serif" style={{
-                  fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 600, letterSpacing: '-0.01em',
+                  fontSize: 'clamp(18px, 3vw, 28px)', fontWeight: 600, letterSpacing: '-0.01em',
                   color: 'var(--ink-soft)',
                 }}>
                   {p}
@@ -109,9 +119,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== CENÁRIO HOJE — 4 ESTATÍSTICAS REAIS ===== */}
+      {/* ===== CENÁRIO HOJE ===== */}
       <section style={{
-        padding: '100px 24px',
+        padding: 'clamp(60px, 10vw, 100px) 24px',
         background: 'var(--bg-card)',
         borderTop: '1px solid var(--line)',
         borderBottom: '1px solid var(--line)',
@@ -122,14 +132,14 @@ export default function HomePage() {
               * O cenário hoje
             </div>
             <h2 className="font-serif" style={{
-              fontSize: 'clamp(28px, 4.5vw, 48px)', fontWeight: 600,
+              fontSize: 'clamp(26px, 4.5vw, 48px)', fontWeight: 600,
               letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '20px',
               maxWidth: '780px', margin: '0 auto 20px',
             }}>
               Talvez você esteja <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>passando por isso…</em>
             </h2>
             <p style={{
-              fontSize: '17px', color: 'var(--ink-soft)',
+              fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)',
               maxWidth: '620px', margin: '0 auto', lineHeight: 1.55,
             }}>
               Não é coincidência: o mercado mudou, os custos subiram, e quem não se adapta fica pra trás. Os números falam por si.
@@ -142,78 +152,32 @@ export default function HomePage() {
             gap: '24px',
           }}>
             {[
-              {
-                numero: '12,15%',
-                titulo: 'Foi quanto o Meta Ads subiu em janeiro/2026 no Brasil.',
-                descricao: 'Seu CAC aumentou da noite pro dia — e o gerenciador não mostra isso.',
-                fonte: 'Meta Business · 2026',
-              },
-              {
-                numero: '1 em 4',
-                titulo: 'empresas NÃO medem se a mídia paga gera lucro.',
-                descricao: 'Você sabe exatamente quanto custou pra trazer cada cliente?',
-                fonte: 'IAB Brasil · Kantar IBOPE',
-              },
-              {
-                numero: '1 em 2',
-                titulo: 'pequenas empresas no Brasil ainda não investem em tráfego pago.',
-                descricao: 'Quem está nessa metade que investe, está crescendo.',
-                fonte: 'Sebrae · Pulso dos Pequenos Negócios 2024',
-              },
-              {
-                numero: '76%',
-                titulo: 'das empresas brasileiras já se digitalizaram —',
-                descricao: 'mas só uma pequena parte investe direito em tráfego. A maioria está exposta sem estratégia.',
-                fonte: 'Sebrae · 2024',
-              },
+              { numero: '12,15%', titulo: 'Foi quanto o Meta Ads subiu em janeiro/2026 no Brasil.', descricao: 'Seu CAC aumentou da noite pro dia — e o gerenciador não mostra isso.', fonte: 'Meta Business · 2026' },
+              { numero: '1 em 4', titulo: 'empresas NÃO medem se a mídia paga gera lucro.', descricao: 'Você sabe exatamente quanto custou pra trazer cada cliente?', fonte: 'IAB Brasil · Kantar IBOPE' },
+              { numero: '1 em 2', titulo: 'pequenas empresas no Brasil ainda não investem em tráfego pago.', descricao: 'Quem está nessa metade que investe, está crescendo.', fonte: 'Sebrae · Pulso dos Pequenos Negócios 2024' },
+              { numero: '76%', titulo: 'das empresas brasileiras já se digitalizaram —', descricao: 'mas só uma pequena parte investe direito em tráfego. A maioria está exposta sem estratégia.', fonte: 'Sebrae · 2024' },
             ].map((stat, i) => (
               <div key={i} style={{
-                background: 'var(--bg)',
-                border: '1px solid var(--line)',
-                borderRadius: '6px',
-                padding: '28px 24px',
-                display: 'flex', flexDirection: 'column',
+                background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '6px',
+                padding: '28px 24px', display: 'flex', flexDirection: 'column',
               }}>
                 <div className="font-serif" style={{
-                  fontSize: 'clamp(36px, 4.5vw, 52px)',
-                  fontWeight: 600,
-                  color: 'var(--accent)',
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1,
-                  marginBottom: '16px',
-                }}>
-                  {stat.numero}
-                </div>
+                  fontSize: 'clamp(34px, 4.5vw, 52px)', fontWeight: 600,
+                  color: 'var(--accent)', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '16px',
+                }}>{stat.numero}</div>
                 <h3 className="font-serif" style={{
-                  fontSize: '17px',
-                  fontWeight: 600,
-                  letterSpacing: '-0.01em',
-                  lineHeight: 1.3,
-                  marginBottom: '12px',
-                  color: 'var(--ink)',
-                }}>
-                  {stat.titulo}
-                </h3>
+                  fontSize: '17px', fontWeight: 600, letterSpacing: '-0.01em',
+                  lineHeight: 1.3, marginBottom: '12px', color: 'var(--ink)',
+                }}>{stat.titulo}</h3>
                 <p style={{
-                  fontSize: '13px',
-                  color: 'var(--ink-soft)',
-                  lineHeight: 1.55,
-                  marginBottom: '16px',
-                  flex: 1,
-                }}>
-                  {stat.descricao}
-                </p>
+                  fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.55,
+                  marginBottom: '16px', flex: 1,
+                }}>{stat.descricao}</p>
                 <div style={{
-                  paddingTop: '12px',
-                  borderTop: '1px solid var(--line-soft)',
-                  fontSize: '10px',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: 'var(--ink-muted)',
-                  fontWeight: 600,
-                }}>
-                  Fonte: {stat.fonte}
-                </div>
+                  paddingTop: '12px', borderTop: '1px solid var(--line-soft)',
+                  fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase',
+                  color: 'var(--ink-muted)', fontWeight: 600,
+                }}>Fonte: {stat.fonte}</div>
               </div>
             ))}
           </div>
@@ -221,31 +185,28 @@ export default function HomePage() {
       </section>
 
       {/* ===== DIFERENCIAL ===== */}
-      <section style={{ padding: '100px 24px', maxWidth: '1100px', margin: '0 auto' }}>
+      <section style={{ padding: 'clamp(60px, 10vw, 100px) 24px', maxWidth: '1100px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', maxWidth: '820px', margin: '0 auto' }}>
           <div className="brand-caps" style={{ marginBottom: '16px' }}>* O que ninguém te conta</div>
           <h2 className="font-serif" style={{
-            fontSize: 'clamp(28px, 4.5vw, 46px)', fontWeight: 600,
+            fontSize: 'clamp(26px, 4.5vw, 46px)', fontWeight: 600,
             letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: '20px',
           }}>
             Só <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>1 em cada 20</em> negócios locais anuncia ativamente no Google.
           </h2>
-          <p style={{
-            fontSize: '18px', color: 'var(--ink-soft)',
-            lineHeight: 1.6,
-          }}>
+          <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: 'var(--ink-soft)', lineHeight: 1.6 }}>
             Enquanto seus concorrentes brigam pelo mesmo público no Instagram, existe um oceano de pessoas buscando ativamente pelo seu serviço — e ninguém aparecendo. Menos concorrência, leads mais qualificados, resultado mais previsível.
           </p>
         </div>
       </section>
 
       {/* ===== PLATAFORMAS DETALHADAS ===== */}
-      <section style={{ padding: '100px 24px', background: 'var(--bg-card)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+      <section style={{ padding: 'clamp(60px, 10vw, 100px) 24px', background: 'var(--bg-card)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <div className="brand-caps" style={{ marginBottom: '12px' }}>* Plataformas que trabalhamos</div>
             <h2 className="font-serif" style={{
-              fontSize: 'clamp(28px, 4.5vw, 44px)', fontWeight: 600,
+              fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
               letterSpacing: '-0.02em', lineHeight: 1.1,
               maxWidth: '760px', margin: '0 auto',
             }}>
@@ -262,30 +223,24 @@ export default function HomePage() {
               { nome: 'TikTok', desc: 'Público jovem, criativos virais, custo mais baixo de impressão.' },
             ].map((p) => (
               <div key={p.nome} style={{
-                background: 'var(--bg)', border: '1px solid var(--line)',
-                borderRadius: '6px', padding: '24px',
+                background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '6px', padding: '24px',
               }}>
-                <h3 className="font-serif" style={{
-                  fontSize: '24px', fontWeight: 600, letterSpacing: '-0.01em',
-                  marginBottom: '12px',
-                }}>
+                <h3 className="font-serif" style={{ fontSize: '24px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '12px' }}>
                   {p.nome}
                 </h3>
-                <p style={{ fontSize: '14px', color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-                  {p.desc}
-                </p>
+                <p style={{ fontSize: '14px', color: 'var(--ink-soft)', lineHeight: 1.55 }}>{p.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===== PARA QUEM — GRID 3x2 + FRASE ACOLHEDORA ===== */}
-      <section id="para-quem" style={{ padding: '100px 24px', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* ===== PARA QUEM ===== */}
+      <section id="para-quem" style={{ padding: 'clamp(60px, 10vw, 100px) 24px', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <div className="brand-caps" style={{ marginBottom: '12px' }}>* Para quem</div>
           <h2 className="font-serif" style={{
-            fontSize: 'clamp(28px, 4.5vw, 44px)', fontWeight: 600,
+            fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
             letterSpacing: '-0.02em', lineHeight: 1.1,
             maxWidth: '780px', margin: '0 auto',
           }}>
@@ -293,17 +248,11 @@ export default function HomePage() {
           </h2>
         </div>
 
-        {/* Grid 3x2 — força 3 colunas em desktop, 2 em tablet, 1 em mobile */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1px',
-          background: 'var(--line)',
-          border: '1px solid var(--line)',
-          borderRadius: '4px',
-          overflow: 'hidden',
-          maxWidth: '1000px',
-          margin: '0 auto',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '1px', background: 'var(--line)', border: '1px solid var(--line)',
+          borderRadius: '4px', overflow: 'hidden',
+          maxWidth: '1000px', margin: '0 auto',
         }}>
           {[
             { titulo: 'Saúde', desc: 'Clínicas odontológicas, médicas, estética, fisioterapia.' },
@@ -314,54 +263,29 @@ export default function HomePage() {
             { titulo: 'E-commerce local', desc: 'Lojas físicas com venda online ou delivery próprio.' },
           ].map((s) => (
             <div key={s.titulo} style={{ background: 'var(--bg-card)', padding: '28px' }}>
-              <h3 className="font-serif" style={{
-                fontSize: '22px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '10px',
-              }}>
+              <h3 className="font-serif" style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '10px' }}>
                 {s.titulo}
               </h3>
-              <p style={{ fontSize: '14px', color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-                {s.desc}
-              </p>
+              <p style={{ fontSize: '14px', color: 'var(--ink-soft)', lineHeight: 1.55 }}>{s.desc}</p>
             </div>
           ))}
         </div>
 
-        {/* Frase acolhedora ao final */}
-        <div style={{
-          textAlign: 'center',
-          marginTop: '48px',
-          maxWidth: '720px',
-          marginLeft: 'auto',
-          marginRight: 'auto',
-        }}>
+        <div style={{ textAlign: 'center', marginTop: '48px', maxWidth: '720px', marginLeft: 'auto', marginRight: 'auto' }}>
           <div className="font-serif" style={{
-            fontSize: '40px',
-            color: 'var(--accent)',
-            lineHeight: 1,
-            marginBottom: '16px',
-            fontStyle: 'italic',
-          }}>
-            *
-          </div>
+            fontSize: '40px', color: 'var(--accent)', lineHeight: 1,
+            marginBottom: '16px', fontStyle: 'italic',
+          }}>*</div>
           <p className="font-serif" style={{
-            fontSize: 'clamp(20px, 2.5vw, 26px)',
-            fontWeight: 500,
-            color: 'var(--ink)',
-            lineHeight: 1.35,
-            letterSpacing: '-0.01em',
-            marginBottom: '24px',
+            fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 500,
+            color: 'var(--ink)', lineHeight: 1.35, letterSpacing: '-0.01em', marginBottom: '24px',
           }}>
             Atendemos negócios de <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>qualquer setor.</em> Seja o seu o que for, podemos ajudar a crescer.
           </p>
           <a href={WHATSAPP_URL} target="_blank" style={{
-            display: 'inline-block',
-            padding: '14px 28px',
-            borderRadius: '4px',
-            background: 'transparent',
-            color: 'var(--ink)',
-            fontWeight: 500,
-            fontSize: '14px',
-            border: '1.5px solid var(--ink)',
+            display: 'inline-block', padding: '14px 28px', borderRadius: '4px',
+            background: 'transparent', color: 'var(--ink)', fontWeight: 500,
+            fontSize: '14px', border: '1.5px solid var(--ink)',
           }}>
             Conversar sobre meu negócio →
           </a>
@@ -370,16 +294,15 @@ export default function HomePage() {
 
       {/* ===== COMO FUNCIONA ===== */}
       <section id="como-funciona" style={{
-        padding: '100px 24px', background: 'var(--bg-card)',
+        padding: 'clamp(60px, 10vw, 100px) 24px', background: 'var(--bg-card)',
         borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)',
       }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '64px' }}>
             <div className="brand-caps" style={{ marginBottom: '12px' }}>* Método Leadboss</div>
             <h2 className="font-serif" style={{
-              fontSize: 'clamp(28px, 4.5vw, 44px)', fontWeight: 600,
-              letterSpacing: '-0.02em', lineHeight: 1.1,
-              maxWidth: '780px', margin: '0 auto',
+              fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
+              letterSpacing: '-0.02em', lineHeight: 1.1, maxWidth: '780px', margin: '0 auto',
             }}>
               Do planejamento ao resultado, <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>cuidamos de tudo.</em>
             </h2>
@@ -395,19 +318,12 @@ export default function HomePage() {
               <div key={p.n} style={{ position: 'relative' }}>
                 <div className="font-serif" style={{
                   fontSize: '64px', fontWeight: 600, color: 'var(--accent)',
-                  fontStyle: 'italic', lineHeight: 1, marginBottom: '12px',
-                  opacity: 0.45,
-                }}>
-                  {p.n}
-                </div>
+                  fontStyle: 'italic', lineHeight: 1, marginBottom: '12px', opacity: 0.45,
+                }}>{p.n}</div>
                 <h3 className="font-serif" style={{
                   fontSize: '22px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '10px',
-                }}>
-                  {p.t}
-                </h3>
-                <p style={{ fontSize: '14px', color: 'var(--ink-soft)', lineHeight: 1.6 }}>
-                  {p.d}
-                </p>
+                }}>{p.t}</h3>
+                <p style={{ fontSize: '14px', color: 'var(--ink-soft)', lineHeight: 1.6 }}>{p.d}</p>
               </div>
             ))}
           </div>
@@ -415,11 +331,11 @@ export default function HomePage() {
       </section>
 
       {/* ===== PLANOS ===== */}
-      <section id="planos" style={{ padding: '100px 24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <section id="planos" style={{ padding: 'clamp(60px, 10vw, 100px) 24px', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <div className="brand-caps" style={{ marginBottom: '12px' }}>* Investimento</div>
           <h2 className="font-serif" style={{
-            fontSize: 'clamp(28px, 4.5vw, 44px)', fontWeight: 600,
+            fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
             letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '12px',
           }}>
             Três caminhos. <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>Você escolhe o seu.</em>
@@ -431,57 +347,14 @@ export default function HomePage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
           {[
-            {
-              nome: 'Essencial',
-              valor: 'R$ 750',
-              periodo: '/ mês',
-              tagline: 'Base sólida pra começar com previsibilidade.',
-              paraQuem: 'Negócios que estão começando no tráfego pago e querem um fluxo constante de leads qualificados.',
-              itens: [
-                'Gestão de tráfego em uma plataforma (Meta OU Google)',
-                'Criação de campanhas de geração de leads',
-                'Relatórios quinzenais',
-                'Configuração de pixels e tags de rastreamento',
-              ],
-              destaque: false,
-            },
-            {
-              nome: 'Performance',
-              valor: 'R$ 1.500',
-              periodo: '/ mês',
-              tagline: 'Crescimento acelerado com mais canais.',
-              paraQuem: 'Negócios que já investem em tráfego e querem escalar com Meta + Google trabalhando juntos.',
-              itens: [
-                'Gestão em duas plataformas (Meta E Google)',
-                'Estratégias de remarketing',
-                'Campanhas para serviços específicos',
-                'Reuniões estratégicas mensais',
-                'Dashboard de acompanhamento',
-              ],
-              destaque: true,
-            },
-            {
-              nome: 'Elite',
-              valor: 'Consultar',
-              periodo: '',
-              tagline: 'Escala, dados e referência no nicho.',
-              paraQuem: 'Negócios consolidados que querem dominar o mercado e transformar tráfego em vantagem competitiva.',
-              itens: [
-                'Gestão 360º (Meta + Google + LinkedIn + TikTok)',
-                'Estratégia de funil completo',
-                'Otimização contínua de landing pages',
-                'Análise competitiva aprofundada',
-                'Consultoria trimestral de vendas',
-                'Atendimento preferencial',
-              ],
-              destaque: false,
-            },
+            { nome: 'Essencial', valor: 'R$ 750', periodo: '/ mês', tagline: 'Base sólida pra começar com previsibilidade.', paraQuem: 'Negócios que estão começando no tráfego pago e querem um fluxo constante de leads qualificados.', itens: ['Gestão de tráfego em uma plataforma (Meta OU Google)','Criação de campanhas de geração de leads','Relatórios quinzenais','Configuração de pixels e tags de rastreamento'], destaque: false },
+            { nome: 'Performance', valor: 'R$ 1.500', periodo: '/ mês', tagline: 'Crescimento acelerado com mais canais.', paraQuem: 'Negócios que já investem em tráfego e querem escalar com Meta + Google trabalhando juntos.', itens: ['Gestão em duas plataformas (Meta E Google)','Estratégias de remarketing','Campanhas para serviços específicos','Reuniões estratégicas mensais','Dashboard de acompanhamento'], destaque: true },
+            { nome: 'Elite', valor: 'Consultar', periodo: '', tagline: 'Escala, dados e referência no nicho.', paraQuem: 'Negócios consolidados que querem dominar o mercado e transformar tráfego em vantagem competitiva.', itens: ['Gestão 360º (Meta + Google + LinkedIn + TikTok)','Estratégia de funil completo','Otimização contínua de landing pages','Análise competitiva aprofundada','Consultoria trimestral de vendas','Atendimento preferencial'], destaque: false },
           ].map((plano) => (
             <div key={plano.nome} style={{
               background: 'var(--bg-card)',
               border: plano.destaque ? '2px solid var(--accent)' : '1px solid var(--line)',
-              borderRadius: '8px', padding: '32px',
-              position: 'relative',
+              borderRadius: '8px', padding: '32px', position: 'relative',
             }}>
               {plano.destaque && (
                 <span style={{
@@ -489,27 +362,15 @@ export default function HomePage() {
                   background: 'var(--accent)', color: 'var(--bg)',
                   fontSize: '10px', fontWeight: 600, letterSpacing: '0.14em',
                   textTransform: 'uppercase', padding: '4px 10px', borderRadius: '3px',
-                }}>
-                  Mais escolhido
-                </span>
+                }}>Mais escolhido</span>
               )}
-              <h3 className="font-serif" style={{
-                fontSize: '28px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '8px',
-              }}>
+              <h3 className="font-serif" style={{ fontSize: '28px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '8px' }}>
                 {plano.nome}
               </h3>
-              <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginBottom: '20px', lineHeight: 1.5 }}>
-                {plano.tagline}
-              </p>
+              <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginBottom: '20px', lineHeight: 1.5 }}>{plano.tagline}</p>
               <div style={{ marginBottom: '20px' }}>
-                <span className="font-serif" style={{ fontSize: '40px', fontWeight: 600, letterSpacing: '-0.02em' }}>
-                  {plano.valor}
-                </span>
-                {plano.periodo && (
-                  <span style={{ fontSize: '14px', color: 'var(--ink-muted)', marginLeft: '6px' }}>
-                    {plano.periodo}
-                  </span>
-                )}
+                <span className="font-serif" style={{ fontSize: '40px', fontWeight: 600, letterSpacing: '-0.02em' }}>{plano.valor}</span>
+                {plano.periodo && <span style={{ fontSize: '14px', color: 'var(--ink-muted)', marginLeft: '6px' }}>{plano.periodo}</span>}
               </div>
               <p style={{
                 fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.55,
@@ -526,8 +387,7 @@ export default function HomePage() {
                 ))}
               </ul>
               <a href={WHATSAPP_URL} target="_blank" style={{
-                display: 'block', textAlign: 'center',
-                padding: '12px 20px', borderRadius: '4px',
+                display: 'block', textAlign: 'center', padding: '12px 20px', borderRadius: '4px',
                 background: plano.destaque ? 'var(--accent)' : 'var(--ink)',
                 color: 'var(--bg)', fontWeight: 500, fontSize: '14px',
               }}>
@@ -540,47 +400,38 @@ export default function HomePage() {
 
       {/* ===== SOBRE ===== */}
       <section style={{
-        padding: '100px 24px', background: 'var(--bg-card)',
+        padding: 'clamp(60px, 10vw, 100px) 24px', background: 'var(--bg-card)',
         borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)',
       }}>
         <div style={{ maxWidth: '780px', margin: '0 auto', textAlign: 'center' }}>
           <div className="brand-caps" style={{ marginBottom: '12px' }}>* Sobre a Leadboss Ads</div>
           <h2 className="font-serif" style={{
-            fontSize: 'clamp(28px, 4.5vw, 44px)', fontWeight: 600,
+            fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
             letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '32px',
           }}>
             Marketing de performance <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>focado em faturamento.</em>
           </h2>
-          <div style={{ fontSize: '17px', color: 'var(--ink-soft)', lineHeight: 1.7, display: 'grid', gap: '16px', textAlign: 'left' }}>
-            <p>
-              A Leadboss Ads nasceu pra resolver um problema simples: a maioria das agências mede sucesso em quantidade de leads. Nós medimos em <strong style={{ color: 'var(--ink)' }}>quantos clientes você fechou.</strong>
-            </p>
-            <p>
-              Atendemos negócios locais em todo o Brasil — saúde, jurídico, imobiliário, educação, serviços. Cada cliente recebe uma estratégia personalizada, e o nosso KPI principal é sempre o mesmo: o crescimento do seu faturamento.
-            </p>
-            <p>
-              Com gestão de tráfego em Meta, Google, LinkedIn e TikTok, criamos campanhas sob medida pra cada momento do seu negócio. E você acompanha tudo, sempre, em relatórios claros.
-            </p>
+          <div style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)', lineHeight: 1.7, display: 'grid', gap: '16px', textAlign: 'left' }}>
+            <p>A Leadboss Ads nasceu pra resolver um problema simples: a maioria das agências mede sucesso em quantidade de leads. Nós medimos em <strong style={{ color: 'var(--ink)' }}>quantos clientes você fechou.</strong></p>
+            <p>Atendemos negócios locais em todo o Brasil — saúde, jurídico, imobiliário, educação, serviços. Cada cliente recebe uma estratégia personalizada, e o nosso KPI principal é sempre o mesmo: o crescimento do seu faturamento.</p>
+            <p>Com gestão de tráfego em Meta, Google, LinkedIn e TikTok, criamos campanhas sob medida pra cada momento do seu negócio. E você acompanha tudo, sempre, em relatórios claros.</p>
           </div>
           <div style={{ marginTop: '36px' }}>
             <a href={WHATSAPP_URL} target="_blank" style={{
               display: 'inline-block', padding: '14px 32px', borderRadius: '4px',
               background: 'var(--ink)', color: 'var(--bg)', fontWeight: 500, fontSize: '15px',
-            }}>
-              Fale com a gente →
-            </a>
+            }}>Fale com a gente →</a>
           </div>
         </div>
       </section>
 
-      {/* ===== FOOTER COMPLETO ===== */}
+      {/* ===== FOOTER ===== */}
       <footer style={{ padding: '60px 24px 40px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '40px',
             marginBottom: '40px', paddingBottom: '32px', borderBottom: '1px solid var(--line)',
           }}>
-            {/* Coluna 1 - Marca */}
             <div>
               <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <div style={{
@@ -597,7 +448,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Coluna 2 - Endereço */}
             <div>
               <div className="brand-caps" style={{ marginBottom: '12px' }}>Endereço</div>
               <div style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
@@ -608,7 +458,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Coluna 3 - Contato */}
             <div>
               <div className="brand-caps" style={{ marginBottom: '12px' }}>Contato</div>
               <div style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
@@ -617,7 +466,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Coluna 4 - Redes */}
             <div>
               <div className="brand-caps" style={{ marginBottom: '12px' }}>Redes</div>
               <div style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
@@ -636,6 +484,16 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* CSS responsivo */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .nav-desktop { display: flex; gap: 28px; }
+        .nav-mobile-cta { display: none; }
+        @media (max-width: 820px) {
+          .nav-desktop { display: none !important; }
+          .nav-mobile-cta { display: inline-block !important; }
+        }
+      `}} />
     </main>
   )
 }
