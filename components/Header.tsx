@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 
@@ -37,8 +38,7 @@ export default function Header({ userEmail }: HeaderProps) {
         marginBottom: '32px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* Logo circular */}
+      <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         <div
           style={{
             width: '56px',
@@ -78,29 +78,42 @@ export default function Header({ userEmail }: HeaderProps) {
             Hub
           </h1>
         </div>
-      </div>
+      </Link>
 
       <div style={{ textAlign: 'right', fontSize: '12px', color: 'var(--ink-muted)', lineHeight: 1.5 }}>
         <strong style={{ display: 'block', color: 'var(--ink)', fontSize: '14px', fontWeight: 600 }}>
           {today.charAt(0).toUpperCase() + today.slice(1)}
         </strong>
         {userEmail && <div style={{ marginTop: '4px' }}>{userEmail}</div>}
-        <button
-          onClick={handleLogout}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--ink-muted)',
-            fontSize: '11px',
-            cursor: 'pointer',
-            marginTop: '6px',
-            textDecoration: 'underline',
-            textUnderlineOffset: '2px',
-            padding: 0,
-          }}
-        >
-          Sair
-        </button>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '6px' }}>
+          <Link
+            href="/configuracoes"
+            style={{
+              color: 'var(--ink-muted)',
+              fontSize: '11px',
+              textDecoration: 'underline',
+              textUnderlineOffset: '2px',
+            }}
+          >
+            Configurações
+          </Link>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--ink-muted)',
+              fontSize: '11px',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              textUnderlineOffset: '2px',
+              padding: 0,
+              fontFamily: 'inherit',
+            }}
+          >
+            Sair
+          </button>
+        </div>
       </div>
     </header>
   )
