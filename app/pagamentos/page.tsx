@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { createClient } from '@/lib/supabase-client'
+import { gerarReciboPDF, carregarLogoBase64 } from '@/components/ReciboPDF'
 
 type Cliente = {
   id: string
@@ -25,7 +26,7 @@ type Pagamento = {
   metodo_pagamento: string | null
   nota_fiscal: string | null
   observacoes: string | null
-  cliente: { nome: string } | null
+  cliente: { nome: string; email: string | null; telefone: string | null } | null
 }
 
 const MESES_NOMES = [
@@ -66,6 +67,7 @@ export default function PagamentosPage() {
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
   const [generating, setGenerating] = useState(false)
+  const [gerandoRecibo, setGerandoRecibo] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [pagamentoSelecionado, setPagamentoSelecionado] = useState<Pagamento | null>(null)
   const [saving, setSaving] = useState(false)
@@ -97,14 +99,13 @@ export default function PagamentosPage() {
         .eq('status', 'ativo')
         .order('nome'),
       supabase.from('pagamentos')
-        .select('*, cliente:clientes (nome)')
+        .select('*, cliente:clientes (nome, email, telefone)')
         .eq('mes_referencia', mesIni)
         .order('data_vencimento'),
     ])
 
     if (clientesData) setClientes(clientesData)
     if (pagamentosData) {
-      // Atualizar status pra "atrasado" se a data de vencimento já passou e ainda está pendente
       const hojeISO = toISODate(new Date())
       const atualizados = (pagamentosData as unknown as Pagamento[]).map((p) => {
         if (p.status === 'pendente' && p.data_vencimento < hojeISO) {
@@ -114,7 +115,6 @@ export default function PagamentosPage() {
       })
       setPagamentos(atualizados)
 
-      // Atualizar no banco os que viraram atrasado
       const paraAtualizar = pagamentosData.filter((p: Pagamento) =>
         p.status === 'pendente' && p.data_vencimento < hojeISO
       )
@@ -146,7 +146,6 @@ export default function PagamentosPage() {
     const mes = mesAtual.getMonth()
     const ultimoDia = getLastDayOfMonth(ano, mes)
 
-    // Buscar pagamentos já existentes desse mês pra não duplicar
     const { data: existentes } = await supabase
       .from('pagamentos')
       .select('cliente_id')
@@ -250,6 +249,36 @@ export default function PagamentosPage() {
     if (!confirm('Excluir essa fatura? Essa ação não pode ser desfeita.')) return
     await supabase.from('pagamentos').delete().eq('id', id)
     await loadData()
+  }
+
+  async function handleGerarRecibo(p: Pagamento) {
+    setGerandoRecibo(p.id)
+    setError('')
+
+    try {
+      // Buscar configurações da agência
+      const { data: config } = await supabase
+        .from('configuracoes')
+        .select('*')
+        .limit(1)
+        .single()
+
+      if (!config) {
+        setError('Configurações da agência não encontradas. Acesse Configurações no header.')
+        setGerandoRecibo(null)
+        return
+      }
+
+      // Carregar logo
+      const logoBase64 = await carregarLogoBase64()
+
+      // Gerar PDF
+      await gerarReciboPDF(p, config, logoBase64 || undefined)
+    } catch (err) {
+      setError('Erro ao gerar recibo: ' + (err as Error).message)
+    } finally {
+      setGerandoRecibo(null)
+    }
   }
 
   function mesAnterior() {
@@ -430,20 +459,30 @@ export default function PagamentosPage() {
                   {cfg.label}
                 </span>
 
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  {p.status !== 'pago' ? (
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {p.status === 'pago' ? (
+                    <>
+                      <button onClick={() => handleGerarRecibo(p)} disabled={gerandoRecibo === p.id} style={{
+                        padding: '6px 14px', borderRadius: '4px', background: 'var(--green)', color: 'var(--bg)',
+                        border: 'none', fontSize: '12px', fontWeight: 500,
+                        cursor: gerandoRecibo === p.id ? 'not-allowed' : 'pointer',
+                        opacity: gerandoRecibo === p.id ? 0.6 : 1, fontFamily: 'inherit',
+                      }}>
+                        {gerandoRecibo === p.id ? 'Gerando...' : '📄 Recibo'}
+                      </button>
+                      <button onClick={() => reverterParaPendente(p.id)} style={{
+                        padding: '6px 14px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
+                        border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                      }}>
+                        Reverter
+                      </button>
+                    </>
+                  ) : (
                     <button onClick={() => abrirModalPagamento(p)} style={{
                       padding: '6px 14px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
                       border: 'none', fontSize: '12px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
                     }}>
                       Marcar como pago
-                    </button>
-                  ) : (
-                    <button onClick={() => reverterParaPendente(p.id)} style={{
-                      padding: '6px 14px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
-                      border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-                    }}>
-                      Reverter
                     </button>
                   )}
                   <button onClick={() => handleDelete(p.id)} title="Excluir" style={{
