@@ -59,7 +59,6 @@ const statusConfig: { [key: string]: { label: string; bg: string; color: string 
 }
 
 export default function ClienteDetalhePage({ params }: { params: Promise<{ id: string }> }) {
-  // 1. Todos os Hooks no topo
   const { id } = use(params)
   const router = useRouter()
   const supabase = createClient()
@@ -91,7 +90,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     observacoes: '',
   })
 
-  // 2. Efeitos para carregar dados
   useEffect(() => {
     async function loadData() {
       if (!id) return
@@ -143,7 +141,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     loadFaturamento()
   }, [id, supabase])
 
-  // 3. Handlers
   function togglePlataforma(plat: string) {
     setForm((f) => ({
       ...f,
@@ -206,7 +203,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     router.refresh()
   }
 
-  // 4. Early returns (DEPOIS dos hooks)
   if (loading) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--ink-muted)' }}>
@@ -229,7 +225,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="container" style={{ paddingBottom: '80px' }}>
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
@@ -262,7 +257,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', marginBottom: '40px' }}>
         <MiniStat label="Faturamento Total" value={formatMoeda(faturamentoTotal)} color="var(--green)" />
         <MiniStat label="Valor Mensal" value={formatMoeda(Number(cliente.valor_mensal))} />
@@ -270,7 +264,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
         <MiniStat label="Desde" value={new Date(cliente.data_entrada).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} />
       </div>
 
-      {/* Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border)', marginBottom: '32px' }}>
         <TabBtn label="Dados Gerais" active={activeTab === 'dados'} onClick={() => setActiveTab('dados')} />
         <TabBtn label="Histórico / Notas" active={activeTab === 'historico'} onClick={() => setActiveTab('historico')} />
@@ -278,7 +271,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
         <TabBtn label="Campanhas" active={activeTab === 'campanhas'} onClick={() => setActiveTab('campanhas')} />
       </div>
 
-      {/* Tab Content */}
       {activeTab === 'dados' && (
         <div style={{ background: 'var(--bg-card)', padding: '32px', borderRadius: '8px', border: '1px solid var(--border)' }}>
           {error && <div style={{ color: 'var(--accent)', marginBottom: '20px', fontSize: '14px' }}>{error}</div>}
