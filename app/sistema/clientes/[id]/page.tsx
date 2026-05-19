@@ -32,6 +32,7 @@ type Cliente = {
   data_saida: string | null
   motivo_saida: string | null
   observacoes: string | null
+  meta_cpl_padrao: number | null
   created_at: string
 }
 
