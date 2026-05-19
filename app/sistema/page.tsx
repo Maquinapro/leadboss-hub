@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
+import DashboardToDo from '@/components/DashboardToDo'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -14,7 +15,7 @@ export default async function DashboardPage() {
   }
 
   const { data: clientesAtivos } = await supabase
-    .from('clientes')
+    .from('clientes_completo')
     .select('id, valor_mensal')
     .eq('status', 'ativo')
 
@@ -71,6 +72,8 @@ export default async function DashboardPage() {
         <NavCard href="/sistema/pagamentos" label="Pagamentos" description="Controle de faturas, recebimentos e inadimplência" available />
         <NavCard href="/sistema/campanhas" label="Campanhas" description="KPIs de Meta, Google e LinkedIn Ads por cliente" available />
       </div>
+
+      <DashboardToDo />
     </div>
   )
 }
