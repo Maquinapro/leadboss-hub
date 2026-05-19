@@ -182,7 +182,7 @@ export default function ClientesPage() {
             const cfg = statusConfig[c.status] || statusConfig.ativo
             const planoNome = c.planos?.nome
             return (
-              <Link key={c.id} href={`/clientes/${c.id}`} style={{
+              <Link key={c.id} href={`/sistema/clientes/${c.id}`} style={{
                 background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px',
                 padding: '18px', display: 'block', transition: 'all 0.15s',
               }}>
