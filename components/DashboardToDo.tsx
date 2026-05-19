@@ -20,6 +20,7 @@ type ClienteSimples = {
 }
 
 const DIAS_SEMANA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
+const DIAS_SEMANA_FULL = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO']
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
 const tipoCores: { [key: string]: string } = {
@@ -52,6 +53,7 @@ export default function DashboardToDo() {
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [mesAtual, setMesAtual] = useState(new Date())
+  const [isMobile, setIsMobile] = useState(false)
 
   const [form, setForm] = useState({
     cliente_id: '',
@@ -60,6 +62,15 @@ export default function DashboardToDo() {
     descricao: '',
     data_evento: '',
   })
+
+  useEffect(() => {
+    function checkMobile() {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => { loadData() }, [])
 
@@ -116,7 +127,6 @@ export default function DashboardToDo() {
   const diasMesAnterior = new Date(ano, mes, 0).getDate()
   const hoje = new Date()
   const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`
-
   const totalCelulas = Math.ceil((primeiroDiaDoMes + diasNoMes) / 7) * 7
 
   // Agrupar atividades por dia
@@ -139,6 +149,16 @@ export default function DashboardToDo() {
     setMesAtual(new Date())
   }
 
+  // Dias do mês atual que têm tarefas (para agenda mobile)
+  const diasComTarefas = Array.from({ length: diasNoMes }, (_, i) => {
+    const dia = i + 1
+    const diaStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
+    const tarefas = atividadesPorDia[diaStr] || []
+    if (tarefas.length === 0) return null
+    const date = new Date(ano, mes, dia)
+    return { dia, diaStr, diaSemana: DIAS_SEMANA_FULL[date.getDay()], tarefas }
+  }).filter(Boolean)
+
   const inputStyle = {
     width: '100%',
     padding: '10px 14px',
@@ -156,6 +176,56 @@ export default function DashboardToDo() {
     color: 'var(--ink-soft)',
     marginBottom: '6px',
     fontWeight: 500,
+  }
+
+  function renderTarefaItem(a: Atividade, size: 'small' | 'large') {
+    const hora = a.data_evento
+      ? new Date(a.data_evento).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      : ''
+    const cor = tipoCores[a.tipo] || '#888'
+
+    if (size === 'large') {
+      return (
+        <div
+          key={a.id}
+          onClick={() => handleToggle(a.id)}
+          title={`${a.titulo} — clique pra concluir`}
+          style={{
+            padding: '10px 14px', borderRadius: '6px', cursor: 'pointer',
+            background: cor + '15', display: 'flex', alignItems: 'flex-start', gap: '10px',
+          }}
+        >
+          <span style={{
+            width: '8px', height: '8px', borderRadius: '50%', marginTop: '5px',
+            background: cor, flexShrink: 0,
+          }} />
+          <span style={{ color: cor, fontWeight: 600, fontSize: '14px', whiteSpace: 'nowrap', minWidth: '42px' }}>
+            {hora}
+          </span>
+          <span style={{ color: 'var(--ink)', fontSize: '14px', lineHeight: 1.4 }}>
+            {a.titulo}
+          </span>
+        </div>
+      )
+    }
+
+    return (
+      <div
+        key={a.id}
+        onClick={() => handleToggle(a.id)}
+        title={`${a.titulo} (${a.cliente_nome}) — clique pra concluir`}
+        style={{
+          fontSize: '11px', lineHeight: 1.3, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: '5px',
+          padding: '2px 4px', borderRadius: '3px',
+          background: cor + '18',
+        }}
+      >
+        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: cor, flexShrink: 0 }} />
+        <span style={{ color: cor, fontWeight: 500, whiteSpace: 'nowrap' }}>{hora}</span>
+        <span style={{ color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.titulo}</span>
+      </div>
+    )
   }
 
   return (
@@ -177,7 +247,7 @@ export default function DashboardToDo() {
           background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px',
           padding: '20px', marginBottom: '16px',
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={labelStyle}>Cliente *</label>
               <select required value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} style={inputStyle}>
@@ -203,7 +273,7 @@ export default function DashboardToDo() {
             <label style={labelStyle}>Título *</label>
             <input type="text" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} style={inputStyle} placeholder="Ex: Enviar relatório mensal" />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: '12px', marginBottom: '16px' }}>
             <div>
               <label style={labelStyle}>Data/hora</label>
               <input type="datetime-local" value={form.data_evento} onChange={(e) => setForm({ ...form, data_evento: e.target.value })} style={inputStyle} />
@@ -228,8 +298,8 @@ export default function DashboardToDo() {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--ink-muted)' }}>Carregando...</div>
       ) : (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', overflow: 'hidden', overflowX: 'auto' as any }}>
-          {/* Header do calendário */}
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', overflow: 'hidden' }}>
+          {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 22px' }}>
             <h3 className="font-serif" style={{ fontSize: '20px', fontWeight: 600 }}>
               {MESES[mes]} {ano}
@@ -253,110 +323,116 @@ export default function DashboardToDo() {
             </div>
           </div>
 
-          {/* Dias da semana */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderTop: '1px solid var(--line)' }}>
-            {DIAS_SEMANA.map((d) => (
-              <div key={d} style={{
-                padding: '10px 12px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em',
-                color: 'var(--ink-muted)', textAlign: 'center', borderBottom: '1px solid var(--line)',
-              }}>
-                {d}
-              </div>
-            ))}
-          </div>
-
-          {/* Grid dos dias */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: '700px' }}>
-            {Array.from({ length: totalCelulas }, (_, i) => {
-              const diaDoMes = i - primeiroDiaDoMes + 1
-              const foraDoMes = diaDoMes < 1 || diaDoMes > diasNoMes
-
-              let diaNum: number
-              let diaStr: string
-              if (diaDoMes < 1) {
-                diaNum = diasMesAnterior + diaDoMes
-                const mAnterior = mes === 0 ? 12 : mes
-                const aAnterior = mes === 0 ? ano - 1 : ano
-                diaStr = `${aAnterior}-${String(mAnterior).padStart(2, '0')}-${String(diaNum).padStart(2, '0')}`
-              } else if (diaDoMes > diasNoMes) {
-                diaNum = diaDoMes - diasNoMes
-                const mProximo = mes === 11 ? 1 : mes + 2
-                const aProximo = mes === 11 ? ano + 1 : ano
-                diaStr = `${aProximo}-${String(mProximo).padStart(2, '0')}-${String(diaNum).padStart(2, '0')}`
-              } else {
-                diaNum = diaDoMes
-                diaStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(diaNum).padStart(2, '0')}`
-              }
-
-              const ehHoje = diaStr === hojeStr
-              const tarefasDoDia = atividadesPorDia[diaStr] || []
-
-              return (
-                <div key={i} style={{
-                  minHeight: '100px',
-                  padding: '8px',
-                  borderRight: (i + 1) % 7 !== 0 ? '1px solid var(--line)' : 'none',
-                  borderBottom: '1px solid var(--line)',
-                  background: foraDoMes ? 'var(--bg)' : 'var(--bg-card)',
-                  opacity: foraDoMes ? 0.4 : 1,
-                }}>
-                  <div style={{
-                    fontSize: '13px', fontWeight: ehHoje ? 700 : 400,
-                    color: ehHoje ? 'var(--bg)' : 'var(--ink)',
-                    marginBottom: '6px',
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: ehHoje ? '26px' : 'auto',
-                    height: ehHoje ? '26px' : 'auto',
-                    borderRadius: '50%',
-                    background: ehHoje ? 'var(--ink)' : 'transparent',
-                  }}>
-                    {diaNum}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    {tarefasDoDia.slice(0, 4).map((a) => {
-                      const hora = a.data_evento
-                        ? new Date(a.data_evento).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                        : ''
-                      const cor = tipoCores[a.tipo] || '#888'
-                      return (
-                        <div
-                          key={a.id}
-                          onClick={() => handleToggle(a.id)}
-                          title={`${a.titulo} (${a.cliente_nome}) — clique pra concluir`}
-                          style={{
-                            fontSize: '11px', lineHeight: 1.3, cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '5px',
-                            padding: '2px 4px', borderRadius: '3px',
-                            background: cor + '18',
-                          }}
-                        >
-                          <span style={{
-                            width: '6px', height: '6px', borderRadius: '50%',
-                            background: cor, flexShrink: 0,
-                          }} />
-                          <span style={{ color: cor, fontWeight: 500, whiteSpace: 'nowrap' }}>
-                            {hora}
-                          </span>
-                          <span style={{
-                            color: 'var(--ink)', overflow: 'hidden',
-                            textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          }}>
-                            {a.titulo}
-                          </span>
-                        </div>
-                      )
-                    })}
-                    {tarefasDoDia.length > 4 && (
-                      <div style={{ fontSize: '10px', color: 'var(--ink-muted)', paddingLeft: '4px' }}>
-                        +{tarefasDoDia.length - 4} mais
-                      </div>
-                    )}
-                  </div>
+          {/* MOBILE: Agenda view */}
+          {isMobile ? (
+            <div>
+              {diasComTarefas.length === 0 ? (
+                <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--ink-muted)', fontSize: '14px' }}>
+                  Nenhuma tarefa neste mês.
                 </div>
-              )
-            })}
-          </div>
+              ) : (
+                diasComTarefas.map((item) => {
+                  if (!item) return null
+                  const ehHoje = item.diaStr === hojeStr
+                  return (
+                    <div key={item.diaStr} style={{ borderTop: '1px solid var(--line)', padding: '16px 18px' }}>
+                      <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                        <div style={{ textAlign: 'center', minWidth: '60px', flexShrink: 0 }}>
+                          <div style={{
+                            fontSize: '28px', fontWeight: 700, lineHeight: 1,
+                            color: ehHoje ? 'var(--accent)' : 'var(--ink)',
+                          }}>
+                            {item.dia}
+                          </div>
+                          <div style={{
+                            fontSize: '10px', letterSpacing: '0.08em', fontWeight: 600, marginTop: '4px',
+                            color: ehHoje ? 'var(--accent)' : 'var(--ink-muted)',
+                          }}>
+                            {item.diaSemana}
+                          </div>
+                        </div>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {item.tarefas.map((a) => renderTarefaItem(a, 'large'))}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          ) : (
+            /* DESKTOP: Grid calendar */
+            <div style={{ overflowX: 'auto' as any }}>
+              {/* Dias da semana */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderTop: '1px solid var(--line)', minWidth: '700px' }}>
+                {DIAS_SEMANA.map((d) => (
+                  <div key={d} style={{
+                    padding: '10px 12px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em',
+                    color: 'var(--ink-muted)', textAlign: 'center', borderBottom: '1px solid var(--line)',
+                  }}>
+                    {d}
+                  </div>
+                ))}
+              </div>
+
+              {/* Grid dos dias */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: '700px' }}>
+                {Array.from({ length: totalCelulas }, (_, i) => {
+                  const diaDoMes = i - primeiroDiaDoMes + 1
+                  const foraDoMes = diaDoMes < 1 || diaDoMes > diasNoMes
+
+                  let diaNum: number
+                  let diaStr: string
+                  if (diaDoMes < 1) {
+                    diaNum = diasMesAnterior + diaDoMes
+                    const mAnterior = mes === 0 ? 12 : mes
+                    const aAnterior = mes === 0 ? ano - 1 : ano
+                    diaStr = `${aAnterior}-${String(mAnterior).padStart(2, '0')}-${String(diaNum).padStart(2, '0')}`
+                  } else if (diaDoMes > diasNoMes) {
+                    diaNum = diaDoMes - diasNoMes
+                    const mProximo = mes === 11 ? 1 : mes + 2
+                    const aProximo = mes === 11 ? ano + 1 : ano
+                    diaStr = `${aProximo}-${String(mProximo).padStart(2, '0')}-${String(diaNum).padStart(2, '0')}`
+                  } else {
+                    diaNum = diaDoMes
+                    diaStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(diaNum).padStart(2, '0')}`
+                  }
+
+                  const ehHoje = diaStr === hojeStr
+                  const tarefasDoDia = atividadesPorDia[diaStr] || []
+
+                  return (
+                    <div key={i} style={{
+                      minHeight: '100px', padding: '8px',
+                      borderRight: (i + 1) % 7 !== 0 ? '1px solid var(--line)' : 'none',
+                      borderBottom: '1px solid var(--line)',
+                      background: foraDoMes ? 'var(--bg)' : 'var(--bg-card)',
+                      opacity: foraDoMes ? 0.4 : 1,
+                    }}>
+                      <div style={{
+                        fontSize: '13px', fontWeight: ehHoje ? 700 : 400,
+                        color: ehHoje ? 'var(--bg)' : 'var(--ink)',
+                        marginBottom: '6px',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: ehHoje ? '26px' : 'auto', height: ehHoje ? '26px' : 'auto',
+                        borderRadius: '50%', background: ehHoje ? 'var(--ink)' : 'transparent',
+                      }}>
+                        {diaNum}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        {tarefasDoDia.slice(0, 4).map((a) => renderTarefaItem(a, 'small'))}
+                        {tarefasDoDia.length > 4 && (
+                          <div style={{ fontSize: '10px', color: 'var(--ink-muted)', paddingLeft: '4px' }}>
+                            +{tarefasDoDia.length - 4} mais
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
