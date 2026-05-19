@@ -210,8 +210,8 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   )
 
 
-useEffect(() => {
-  const clienteId = cliente?.id
+  useEffect(() => {
+    const clienteId = cliente?.id
   if (!clienteId) return
   async function loadFaturamento() {
     const { data } = await supabase
@@ -225,7 +225,7 @@ useEffect(() => {
     }
   }
   loadFaturamento()
-}, [cliente?.id])
+  }, [cliente?.id])
 
   const inputStyle = {
     width: '100%',
