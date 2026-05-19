@@ -209,11 +209,13 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   const [faturamentoTotal, setFaturamentoTotal] = useState(0)
 
 useEffect(() => {
+  const clienteId = cliente?.id
+  if (!clienteId) return
   async function loadFaturamento() {
     const { data } = await supabase
       .from('pagamentos')
       .select('valor')
-      .eq('cliente_id', cliente.id)
+      .eq('cliente_id', clienteId)
       .eq('status', 'pago')
     if (data) {
       const total = data.reduce((s, p) => s + Number(p.valor), 0)
@@ -221,7 +223,7 @@ useEffect(() => {
     }
   }
   loadFaturamento()
-}, [cliente.id])
+}, [cliente?.id])
 
   const inputStyle = {
     width: '100%',
