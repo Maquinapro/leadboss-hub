@@ -67,6 +67,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   const [error, setError] = useState('')
   const [editMode, setEditMode] = useState(false)
   const [activeTab, setActiveTab] = useState('dados')
+  const [faturamentoTotal, setFaturamentoTotal] = useState(0)
 
   const [form, setForm] = useState({
     nome: '',
@@ -151,6 +152,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
         data_saida: form.status === 'encerrado' ? form.data_saida || null : null,
         motivo_saida: form.status === 'encerrado' ? form.motivo_saida || null : null,
         observacoes: form.observacoes || null,
+        
       })
       .eq('id', id)
 
@@ -206,7 +208,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     0,
     (hoje.getFullYear() - dataEntrada.getFullYear()) * 12 + (hoje.getMonth() - dataEntrada.getMonth())
   )
-  const [faturamentoTotal, setFaturamentoTotal] = useState(0)
+
 
 useEffect(() => {
   const clienteId = cliente?.id
