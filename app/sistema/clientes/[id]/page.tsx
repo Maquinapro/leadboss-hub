@@ -120,7 +120,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     loadData()
   }, [id])
   useEffect(() => {
-    const clienteId = cliente?.id
+    const clienteId = id
   if (!clienteId) return
     async function loadFaturamento() {
       const { data } = await supabase
@@ -134,7 +134,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
       }
     }
     loadFaturamento()
-  }, [cliente?.id])
+  }, [id])
 
   function togglePlataforma(plat: string) {
     setForm((f) => ({
