@@ -11,18 +11,17 @@ type Cliente = {
   nome: string
   segmento: string
   status: string
-  valor_mensal: number
+  valor_mensal: number | null
+  plano_nome: string | null
   data_entrada: string
   plataformas: string[] | null
   created_at: string
-  planos: { nome: string } | null
 }
 
 const statusConfig: { [key: string]: { label: string; bg: string; color: string } } = {
   ativo: { label: 'Ativo', bg: '#e0ebd9', color: 'var(--green)' },
-  prospeccao: { label: 'Prospecção', bg: '#fff4e0', color: '#8a5a00' },
   pausado: { label: 'Pausado', bg: '#e3eef7', color: 'var(--blue)' },
-  encerrado: { label: 'Encerrado', bg: '#f5d6cd', color: 'var(--accent)' },
+  cancelado: { label: 'Cancelado', bg: '#f5d6cd', color: 'var(--accent)' },
 }
 
 export default function ClientesPage() {
@@ -47,11 +46,11 @@ export default function ClientesPage() {
       setUserEmail(user.email || '')
 
       const { data } = await supabase
-        .from('clientes')
-        .select('id, nome, segmento, status, valor_mensal, data_entrada, plataformas, created_at, planos (nome)')
+        .from('clientes_completo')
+        .select('id, nome, segmento, status, valor_mensal, plano_nome, data_entrada, plataformas, created_at')
         .order('created_at', { ascending: false })
 
-      if (data) setClientes(data as unknown as Cliente[])
+      if (data) setClientes(data as Cliente[])
       setLoading(false)
     }
     load()
@@ -72,15 +71,14 @@ export default function ClientesPage() {
     if (ordem === 'recente') lista.sort((a, b) => b.created_at.localeCompare(a.created_at))
     if (ordem === 'antigo') lista.sort((a, b) => a.created_at.localeCompare(b.created_at))
     if (ordem === 'nome') lista.sort((a, b) => a.nome.localeCompare(b.nome))
-    if (ordem === 'maior') lista.sort((a, b) => Number(b.valor_mensal) - Number(a.valor_mensal))
-    if (ordem === 'menor') lista.sort((a, b) => Number(a.valor_mensal) - Number(b.valor_mensal))
+    if (ordem === 'maior') lista.sort((a, b) => Number(b.valor_mensal ?? 0) - Number(a.valor_mensal ?? 0))
+    if (ordem === 'menor') lista.sort((a, b) => Number(a.valor_mensal ?? 0) - Number(b.valor_mensal ?? 0))
     return lista
   }, [clientes, busca, filtroStatus, ordem])
 
   const totalAtivos = clientes.filter((c) => c.status === 'ativo').length
-  const totalProspeccao = clientes.filter((c) => c.status === 'prospeccao').length
   const totalPausados = clientes.filter((c) => c.status === 'pausado').length
-  const totalEncerrados = clientes.filter((c) => c.status === 'encerrado').length
+  const totalCancelados = clientes.filter((c) => c.status === 'cancelado').length
 
   const formatMoeda = (v: number) =>
     v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -125,9 +123,8 @@ export default function ClientesPage() {
       <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '1px solid var(--line)', flexWrap: 'wrap' }}>
         <TabBtn label="Todos" count={clientes.length} active={filtroStatus === 'todos'} onClick={() => setFiltroStatus('todos')} />
         <TabBtn label="Ativos" count={totalAtivos} active={filtroStatus === 'ativo'} onClick={() => setFiltroStatus('ativo')} />
-        <TabBtn label="Prospecção" count={totalProspeccao} active={filtroStatus === 'prospeccao'} onClick={() => setFiltroStatus('prospeccao')} />
         <TabBtn label="Pausados" count={totalPausados} active={filtroStatus === 'pausado'} onClick={() => setFiltroStatus('pausado')} />
-        <TabBtn label="Encerrados" count={totalEncerrados} active={filtroStatus === 'encerrado'} onClick={() => setFiltroStatus('encerrado')} />
+        <TabBtn label="Cancelados" count={totalCancelados} active={filtroStatus === 'cancelado'} onClick={() => setFiltroStatus('cancelado')} />
       </div>
 
       {/* Busca e ordenação */}
@@ -180,7 +177,6 @@ export default function ClientesPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
           {clientesFiltrados.map((c) => {
             const cfg = statusConfig[c.status] || statusConfig.ativo
-            const planoNome = c.planos?.nome
             return (
               <Link key={c.id} href={`/sistema/clientes/${c.id}`} style={{
                 background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px',
@@ -200,7 +196,7 @@ export default function ClientesPage() {
                 </div>
 
                 <div style={{ fontSize: '12px', color: 'var(--ink-muted)', marginBottom: '10px' }}>
-                  {c.segmento}{planoNome && <> · {planoNome}</>}
+                  {c.segmento}{c.plano_nome && <> · {c.plano_nome}</>}
                 </div>
 
                 {c.plataformas && c.plataformas.length > 0 && (
@@ -221,7 +217,7 @@ export default function ClientesPage() {
                   display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
                 }}>
                   <span className="font-serif" style={{ fontSize: '20px', fontWeight: 600 }}>
-                    {formatMoeda(Number(c.valor_mensal))}
+                    {formatMoeda(Number(c.valor_mensal ?? 0))}
                   </span>
                   <span style={{ fontSize: '11px', color: 'var(--ink-muted)' }}>/mês</span>
                 </div>

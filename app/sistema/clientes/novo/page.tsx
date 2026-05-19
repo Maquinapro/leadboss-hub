@@ -85,24 +85,44 @@ export default function NovoClientePage() {
     setError('')
     setLoading(true)
 
-    const { error: insertError } = await supabase.from('clientes').insert({
-      nome: form.nome,
-      segmento: form.segmento,
-      email: form.email || null,
-      telefone: form.telefone || null,
-      responsavel_contato: form.responsavel_contato || null,
+    // 1. Inserir o cliente (sem campos financeiros)
+    const { data: clienteCriado, error: clienteError } = await supabase
+      .from('clientes')
+      .insert({
+        nome: form.nome,
+        segmento: form.segmento,
+        email: form.email || null,
+        telefone: form.telefone || null,
+        responsavel_contato: form.responsavel_contato || null,
+        verba_midia: form.verba_midia ? Number(form.verba_midia) : null,
+        plataformas: form.plataformas.length > 0 ? form.plataformas : null,
+        data_entrada: form.data_entrada,
+        status: form.status,
+        observacoes: form.observacoes || null,
+      })
+      .select('id')
+      .single()
+
+    if (clienteError || !clienteCriado) {
+      setError('Erro ao cadastrar cliente: ' + (clienteError?.message ?? 'desconhecido'))
+      setLoading(false)
+      return
+    }
+
+    // 2. Inserir o contrato ativo desse cliente
+    const { error: contratoError } = await supabase.from('contratos').insert({
+      cliente_id: clienteCriado.id,
       plano_id: form.plano_id || null,
+      data_inicio: form.data_entrada,
       valor_mensal: Number(form.valor_mensal),
-      verba_midia: form.verba_midia ? Number(form.verba_midia) : null,
-      plataformas: form.plataformas.length > 0 ? form.plataformas : null,
-      data_entrada: form.data_entrada,
       dia_vencimento: Number(form.dia_vencimento),
-      status: form.status,
-      observacoes: form.observacoes || null,
+      ativo: true,
     })
 
-    if (insertError) {
-      setError('Erro ao cadastrar: ' + insertError.message)
+    if (contratoError) {
+      // Rollback: apaga o cliente pra não ficar órfão sem contrato
+      await supabase.from('clientes').delete().eq('id', clienteCriado.id)
+      setError('Erro ao criar contrato: ' + contratoError.message)
       setLoading(false)
       return
     }
@@ -240,7 +260,6 @@ export default function NovoClientePage() {
               {planos.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nome}
-                  {p.valor_padrao ? ` — R$ ${p.valor_padrao}` : ' — valor livre'}
                 </option>
               ))}
             </select>
@@ -332,10 +351,9 @@ export default function NovoClientePage() {
               onChange={(e) => setForm({ ...form, status: e.target.value })}
               style={inputStyle}
             >
-              <option value="prospeccao">Prospecção</option>
               <option value="ativo">Ativo</option>
               <option value="pausado">Pausado</option>
-              <option value="encerrado">Encerrado</option>
+              <option value="cancelado">Cancelado</option>
             </select>
           </div>
         </div>

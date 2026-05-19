@@ -22,18 +22,20 @@ type Cliente = {
   email: string | null
   telefone: string | null
   responsavel_contato: string | null
-  plano_id: string | null
-  valor_mensal: number
   verba_midia: number | null
   plataformas: string[] | null
   data_entrada: string
-  dia_vencimento: number | null
   status: string
   data_saida: string | null
   motivo_saida: string | null
   observacoes: string | null
   meta_cpl_padrao: number | null
   created_at: string
+  contrato_id: string | null
+  plano_id: string | null
+  plano_nome: string | null
+  valor_mensal: number | null
+  dia_vencimento: number | null
 }
 
 const PLATAFORMAS_DISPONIVEIS = ['Meta', 'Google', 'LinkedIn', 'YouTube', 'TikTok']
@@ -50,9 +52,8 @@ const SEGMENTOS_SUGERIDOS = [
 
 const statusConfig: { [key: string]: { label: string; bg: string; color: string } } = {
   ativo: { label: 'Ativo', bg: '#e0ebd9', color: 'var(--green)' },
-  prospeccao: { label: 'Prospecção', bg: '#fff4e0', color: '#8a5a00' },
   pausado: { label: 'Pausado', bg: '#e3eef7', color: 'var(--blue)' },
-  encerrado: { label: 'Encerrado', bg: '#f5d6cd', color: 'var(--accent)' },
+  cancelado: { label: 'Cancelado', bg: '#f5d6cd', color: 'var(--accent)' },
 }
 
 export default function ClienteDetalhePage({ params }: { params: Promise<{ id: string }> }) {
@@ -90,12 +91,12 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   useEffect(() => {
     async function loadData() {
       const [{ data: clienteData }, { data: planosData }] = await Promise.all([
-        supabase.from('clientes').select('*').eq('id', id).single(),
+        supabase.from('clientes_completo').select('*').eq('id', id).single(),
         supabase.from('planos').select('id, nome, valor_padrao, permite_valor_customizado'),
       ])
 
       if (clienteData) {
-        setCliente(clienteData)
+        setCliente(clienteData as Cliente)
         setForm({
           nome: clienteData.nome,
           segmento: clienteData.segmento,
@@ -103,7 +104,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
           telefone: clienteData.telefone || '',
           responsavel_contato: clienteData.responsavel_contato || '',
           plano_id: clienteData.plano_id || '',
-          valor_mensal: String(clienteData.valor_mensal),
+          valor_mensal: clienteData.valor_mensal ? String(clienteData.valor_mensal) : '',
           verba_midia: clienteData.verba_midia ? String(clienteData.verba_midia) : '',
           plataformas: clienteData.plataformas || [],
           data_entrada: clienteData.data_entrada,
@@ -119,14 +120,14 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     }
     loadData()
   }, [id])
+
   useEffect(() => {
-    const clienteId = id
-  if (!clienteId) return
+    if (!id) return
     async function loadFaturamento() {
       const { data } = await supabase
         .from('pagamentos')
         .select('valor')
-        .eq('cliente_id', clienteId)
+        .eq('cliente_id', id)
         .eq('status', 'pago')
       if (data) {
         const total = data.reduce((s, p) => s + Number(p.valor), 0)
@@ -150,7 +151,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     setError('')
     setSaving(true)
 
-    const { error: updateError } = await supabase
+    const { error: clienteError } = await supabase
       .from('clientes')
       .update({
         nome: form.nome,
@@ -158,28 +159,41 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
         email: form.email || null,
         telefone: form.telefone || null,
         responsavel_contato: form.responsavel_contato || null,
-        plano_id: form.plano_id || null,
-        valor_mensal: Number(form.valor_mensal),
         verba_midia: form.verba_midia ? Number(form.verba_midia) : null,
         plataformas: form.plataformas.length > 0 ? form.plataformas : null,
         data_entrada: form.data_entrada,
-        dia_vencimento: Number(form.dia_vencimento),
         status: form.status,
-        data_saida: form.status === 'encerrado' ? form.data_saida || null : null,
-        motivo_saida: form.status === 'encerrado' ? form.motivo_saida || null : null,
+        data_saida: form.status === 'cancelado' ? form.data_saida || null : null,
+        motivo_saida: form.status === 'cancelado' ? form.motivo_saida || null : null,
         observacoes: form.observacoes || null,
-        
       })
       .eq('id', id)
 
-    if (updateError) {
-      setError('Erro ao salvar: ' + updateError.message)
+    if (clienteError) {
+      setError('Erro ao salvar cliente: ' + clienteError.message)
       setSaving(false)
       return
     }
 
-    const { data: refreshed } = await supabase.from('clientes').select('*').eq('id', id).single()
-    if (refreshed) setCliente(refreshed)
+    if (cliente?.contrato_id) {
+      const { error: contratoError } = await supabase
+        .from('contratos')
+        .update({
+          plano_id: form.plano_id || null,
+          valor_mensal: Number(form.valor_mensal),
+          dia_vencimento: Number(form.dia_vencimento),
+        })
+        .eq('id', cliente.contrato_id)
+
+      if (contratoError) {
+        setError('Erro ao salvar contrato: ' + contratoError.message)
+        setSaving(false)
+        return
+      }
+    }
+
+    const { data: refreshed } = await supabase.from('clientes_completo').select('*').eq('id', id).single()
+    if (refreshed) setCliente(refreshed as Cliente)
     setEditMode(false)
     setSaving(false)
   }
@@ -224,7 +238,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     0,
     (hoje.getFullYear() - dataEntrada.getFullYear()) * 12 + (hoje.getMonth() - dataEntrada.getMonth())
   )
-
 
   const inputStyle = {
     width: '100%',
@@ -290,7 +303,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
         marginBottom: '28px', borderRadius: '4px', overflow: 'hidden',
       }}>
         <MiniStat label="Tempo na agência" value={`${mesesNaAgencia} ${mesesNaAgencia === 1 ? 'mês' : 'meses'}`} />
-        <MiniStat label="Valor mensal" value={formatMoeda(Number(cliente.valor_mensal))} />
+        <MiniStat label="Valor mensal" value={formatMoeda(Number(cliente.valor_mensal ?? 0))} />
         <MiniStat label="Faturamento total" value={formatMoeda(faturamentoTotal)} color="var(--green)" />
       </div>
 
@@ -304,7 +317,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
       {activeTab === 'dados' && (
         <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', padding: '28px' }}>
           {!editMode ? (
-            <DadosView cliente={cliente} planos={planos} formatMoeda={formatMoeda} />
+            <DadosView cliente={cliente} formatMoeda={formatMoeda} />
           ) : (
             <form onSubmit={handleSave}>
               <div style={{ marginBottom: '20px' }}>
@@ -387,15 +400,14 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
                 <div>
                   <label style={labelStyle}>Status *</label>
                   <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} style={inputStyle}>
-                    <option value="prospeccao">Prospecção</option>
                     <option value="ativo">Ativo</option>
                     <option value="pausado">Pausado</option>
-                    <option value="encerrado">Encerrado</option>
+                    <option value="cancelado">Cancelado</option>
                   </select>
                 </div>
               </div>
 
-              {form.status === 'encerrado' && (
+              {form.status === 'cancelado' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '20px' }}>
                   <div>
                     <label style={labelStyle}>Data de saída</label>
@@ -440,17 +452,17 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
         <ClienteHistorico clienteId={cliente.id} />
       )}
 
-   {activeTab === 'pagamentos' && (
-  <ClientePagamentos cliente={{
-    id: cliente.id,
-    nome: cliente.nome,
-    email: cliente.email,
-    telefone: cliente.telefone,
-    data_entrada: cliente.data_entrada,
-  }} />
-)}
+      {activeTab === 'pagamentos' && (
+        <ClientePagamentos cliente={{
+          id: cliente.id,
+          nome: cliente.nome,
+          email: cliente.email,
+          telefone: cliente.telefone,
+          data_entrada: cliente.data_entrada,
+        }} />
+      )}
 
-{activeTab === 'campanhas' && (
+      {activeTab === 'campanhas' && (
         <ClienteCampanhas cliente={{
           id: cliente.id,
           nome: cliente.nome,
@@ -488,8 +500,7 @@ function TabBtn({ label, active, onClick }: { label: string; active: boolean; on
   )
 }
 
-function DadosView({ cliente, planos, formatMoeda }: { cliente: Cliente; planos: Plano[]; formatMoeda: (v: number) => string }) {
-  const plano = planos.find((p) => p.id === cliente.plano_id)
+function DadosView({ cliente, formatMoeda }: { cliente: Cliente; formatMoeda: (v: number) => string }) {
   const dataEntradaStr = new Date(cliente.data_entrada).toLocaleDateString('pt-BR')
 
   const Item = ({ label, value }: { label: string; value: string | null }) => (
@@ -508,8 +519,8 @@ function DadosView({ cliente, planos, formatMoeda }: { cliente: Cliente; planos:
       <Item label="E-mail" value={cliente.email} />
       <Item label="Telefone" value={cliente.telefone} />
       <Item label="Responsável de contato" value={cliente.responsavel_contato} />
-      <Item label="Plano" value={plano?.nome || '—'} />
-      <Item label="Valor mensal" value={formatMoeda(Number(cliente.valor_mensal))} />
+      <Item label="Plano" value={cliente.plano_nome} />
+      <Item label="Valor mensal" value={formatMoeda(Number(cliente.valor_mensal ?? 0))} />
       <Item label="Verba de mídia" value={cliente.verba_midia ? formatMoeda(Number(cliente.verba_midia)) : null} />
       <Item label="Plataformas" value={cliente.plataformas?.join(', ') || null} />
       <Item label="Data de entrada" value={dataEntradaStr} />
