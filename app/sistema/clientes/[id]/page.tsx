@@ -206,7 +206,22 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     0,
     (hoje.getFullYear() - dataEntrada.getFullYear()) * 12 + (hoje.getMonth() - dataEntrada.getMonth())
   )
-  const faturamentoTotal = mesesNaAgencia * Number(cliente.valor_mensal)
+  const [faturamentoTotal, setFaturamentoTotal] = useState(0)
+
+useEffect(() => {
+  async function loadFaturamento() {
+    const { data } = await supabase
+      .from('pagamentos')
+      .select('valor')
+      .eq('cliente_id', cliente.id)
+      .eq('status', 'pago')
+    if (data) {
+      const total = data.reduce((s, p) => s + Number(p.valor), 0)
+      setFaturamentoTotal(total)
+    }
+  }
+  loadFaturamento()
+}, [cliente.id])
 
   const inputStyle = {
     width: '100%',
