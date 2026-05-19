@@ -57,7 +57,7 @@ export default async function DashboardPage() {
       <Header userEmail={user.email} />
 
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1px',
         background: 'var(--line)', border: '1px solid var(--line)',
         marginBottom: '28px', borderRadius: '4px', overflow: 'hidden',
       }}>

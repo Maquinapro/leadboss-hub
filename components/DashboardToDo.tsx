@@ -228,7 +228,7 @@ export default function DashboardToDo() {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--ink-muted)' }}>Carregando...</div>
       ) : (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', overflow: 'hidden', overflowX: 'auto' as any }}>
           {/* Header do calendário */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 22px' }}>
             <h3 className="font-serif" style={{ fontSize: '20px', fontWeight: 600 }}>
@@ -266,7 +266,7 @@ export default function DashboardToDo() {
           </div>
 
           {/* Grid dos dias */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: '700px' }}>
             {Array.from({ length: totalCelulas }, (_, i) => {
               const diaDoMes = i - primeiroDiaDoMes + 1
               const foraDoMes = diaDoMes < 1 || diaDoMes > diasNoMes
