@@ -94,7 +94,7 @@ export default function PagamentosPage() {
     const mesIni = toISODate(mesAtual)
 
     const [{ data: clientesData }, { data: pagamentosData }] = await Promise.all([
-      supabase.from('clientes')
+      supabase.from('clientes_completo')
         .select('id, nome, valor_mensal, dia_vencimento, status')
         .eq('status', 'ativo')
         .order('nome'),
@@ -384,7 +384,7 @@ export default function PagamentosPage() {
 
       {/* Stats */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1px',
         background: 'var(--line)', border: '1px solid var(--line)',
         marginBottom: '28px', borderRadius: '4px', overflow: 'hidden',
       }}>
