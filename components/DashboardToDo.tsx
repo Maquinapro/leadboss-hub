@@ -53,6 +53,7 @@ export default function DashboardToDo() {
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [mesAtual, setMesAtual] = useState(new Date())
+  const [tarefaSelecionada, setTarefaSelecionada] = useState<Atividade | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
   const [form, setForm] = useState({
@@ -188,8 +189,8 @@ export default function DashboardToDo() {
       return (
         <div
           key={a.id}
-          onClick={() => handleToggle(a.id)}
-          title={`${a.titulo} — clique pra concluir`}
+          onClick={() => setTarefaSelecionada(a)}
+          title={`${a.titulo} — clique pra ver detalhes`}
           style={{
             padding: '10px 14px', borderRadius: '6px', cursor: 'pointer',
             background: cor + '15', display: 'flex', alignItems: 'flex-start', gap: '10px',
@@ -228,8 +229,95 @@ export default function DashboardToDo() {
     )
   }
 
+
+  // Modal de detalhes da tarefa
+  const Modal = () => {
+    if (!tarefaSelecionada) return null
+    const a = tarefaSelecionada
+    const cor = tipoCores[a.tipo] || '#888'
+    const dataStr = a.data_evento
+      ? new Date(a.data_evento).toLocaleDateString('pt-BR', {
+          day: '2-digit', month: 'long', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        })
+      : null
+
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 1000, padding: '20px',
+      }} onClick={() => setTarefaSelecionada(null)}>
+        <div style={{
+          background: 'var(--bg-card)', borderRadius: '8px', padding: '28px',
+          maxWidth: '520px', width: '100%', position: 'relative',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+        }} onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => setTarefaSelecionada(null)}
+            style={{
+              position: 'absolute', top: '16px', right: '16px',
+              background: 'none', border: 'none', fontSize: '20px',
+              cursor: 'pointer', color: 'var(--ink-muted)', fontFamily: 'inherit',
+              lineHeight: 1, padding: '4px 8px',
+            }}
+          >×</button>
+
+          <div style={{ marginBottom: '20px' }}>
+            <span style={{
+              fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase',
+              padding: '3px 9px', borderRadius: '3px', fontWeight: 600,
+              background: cor + '20', color: cor,
+            }}>
+              {tipoLabels[a.tipo] || a.tipo}
+            </span>
+          </div>
+
+          <h2 className="font-serif" style={{
+            fontSize: '24px', fontWeight: 600, letterSpacing: '-0.01em',
+            lineHeight: 1.2, marginBottom: '16px', color: 'var(--ink)',
+          }}>
+            {a.titulo}
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', gap: '8px', fontSize: '14px' }}>
+              <span style={{ color: 'var(--ink-muted)', minWidth: '80px' }}>Cliente</span>
+              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>{a.cliente_nome}</span>
+            </div>
+            {dataStr && (
+              <div style={{ display: 'flex', gap: '8px', fontSize: '14px' }}>
+                <span style={{ color: 'var(--ink-muted)', minWidth: '80px' }}>Data</span>
+                <span style={{ color: 'var(--ink)' }}>{dataStr}</span>
+              </div>
+            )}
+            {a.descricao && (
+              <div style={{ display: 'flex', gap: '8px', fontSize: '14px' }}>
+                <span style={{ color: 'var(--ink-muted)', minWidth: '80px' }}>Descrição</span>
+                <span style={{ color: 'var(--ink)' }}>{a.descricao}</span>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => { handleToggle(a.id); setTarefaSelecionada(null) }}
+            style={{
+              width: '100%', padding: '12px', borderRadius: '4px',
+              background: 'var(--ink)', color: 'var(--bg)',
+              border: 'none', fontSize: '14px', fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            ✓ Marcar como concluída
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ marginTop: '28px' }}>
+      <Modal />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h2 className="font-serif" style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.01em' }}>
           To Do
