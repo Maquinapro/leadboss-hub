@@ -75,7 +75,8 @@ export default function Header({ userEmail }: HeaderProps) {
               marginTop: '4px',
             }}
           >
-            Hub
+            Client{' '}
+            <span style={{ color: 'var(--accent)', fontStyle: 'italic' }}>Hub</span>
           </h1>
         </div>
       </Link>
