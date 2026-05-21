@@ -213,8 +213,8 @@ export default function DashboardToDo() {
     return (
       <div
         key={a.id}
-        onClick={() => handleToggle(a.id)}
-        title={`${a.titulo} (${a.cliente_nome}) — clique pra concluir`}
+        onClick={() => setTarefaSelecionada(a)}
+        title={`${a.titulo} — clique pra ver detalhes`}
         style={{
           fontSize: '11px', lineHeight: 1.3, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: '5px',
