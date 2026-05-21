@@ -236,80 +236,114 @@ export default function DashboardToDo() {
     const a = tarefaSelecionada
     const cor = tipoCores[a.tipo] || '#888'
     const dataStr = a.data_evento
-      ? new Date(a.data_evento).toLocaleDateString('pt-BR', {
+      ? new Date(a.data_evento).toLocaleString('pt-BR', {
           day: '2-digit', month: 'long', year: 'numeric',
-          hour: '2-digit', minute: '2-digit'
+          hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo'
         })
       : null
 
     return (
       <div style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         zIndex: 1000, padding: '20px',
       }} onClick={() => setTarefaSelecionada(null)}>
         <div style={{
-          background: 'var(--bg-card)', borderRadius: '8px', padding: '28px',
-          maxWidth: '520px', width: '100%', position: 'relative',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+          background: 'var(--bg-card)', borderRadius: '8px', padding: '0',
+          maxWidth: '540px', width: '100%', position: 'relative',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.25)', overflow: 'hidden',
         }} onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => setTarefaSelecionada(null)}
-            style={{
-              position: 'absolute', top: '16px', right: '16px',
-              background: 'none', border: 'none', fontSize: '20px',
-              cursor: 'pointer', color: 'var(--ink-muted)', fontFamily: 'inherit',
-              lineHeight: 1, padding: '4px 8px',
-            }}
-          >×</button>
 
-          <div style={{ marginBottom: '20px' }}>
-            <span style={{
-              fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase',
-              padding: '3px 9px', borderRadius: '3px', fontWeight: 600,
-              background: cor + '20', color: cor,
-            }}>
-              {tipoLabels[a.tipo] || a.tipo}
-            </span>
-          </div>
-
-          <h2 className="font-serif" style={{
-            fontSize: '24px', fontWeight: 600, letterSpacing: '-0.01em',
-            lineHeight: 1.2, marginBottom: '16px', color: 'var(--ink)',
+          {/* Header colorido */}
+          <div style={{
+            background: cor + '15', borderBottom: '1px solid ' + cor + '30',
+            padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
           }}>
-            {a.titulo}
-          </h2>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', gap: '8px', fontSize: '14px' }}>
-              <span style={{ color: 'var(--ink-muted)', minWidth: '80px' }}>Cliente</span>
-              <span style={{ color: 'var(--ink)', fontWeight: 500 }}>{a.cliente_nome}</span>
+            <div>
+              <span style={{
+                fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase',
+                fontWeight: 700, color: cor,
+              }}>
+                {tipoLabels[a.tipo] || a.tipo}
+              </span>
+              <h2 className="font-serif" style={{
+                fontSize: '22px', fontWeight: 600, letterSpacing: '-0.01em',
+                lineHeight: 1.25, marginTop: '6px', color: 'var(--ink)',
+              }}>
+                {a.titulo}
+              </h2>
             </div>
-            {dataStr && (
-              <div style={{ display: 'flex', gap: '8px', fontSize: '14px' }}>
-                <span style={{ color: 'var(--ink-muted)', minWidth: '80px' }}>Data</span>
-                <span style={{ color: 'var(--ink)' }}>{dataStr}</span>
+            <button
+              onClick={() => setTarefaSelecionada(null)}
+              style={{
+                background: 'none', border: 'none', fontSize: '22px',
+                cursor: 'pointer', color: 'var(--ink-muted)', fontFamily: 'inherit',
+                lineHeight: 1, padding: '0 0 0 16px', flexShrink: 0,
+              }}
+            >×</button>
+          </div>
+
+          {/* Corpo */}
+          <div style={{ padding: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: a.descricao ? '16px' : '0' }}>
+              <div>
+                <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)', fontWeight: 600, marginBottom: '4px' }}>
+                  Cliente
+                </div>
+                <div style={{ fontSize: '15px', color: 'var(--ink)', fontWeight: 500 }}>
+                  {a.cliente_nome}
+                </div>
               </div>
-            )}
+              <div>
+                <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)', fontWeight: 600, marginBottom: '4px' }}>
+                  Data e hora
+                </div>
+                <div style={{ fontSize: '15px', color: 'var(--ink)' }}>
+                  {dataStr || '—'}
+                </div>
+              </div>
+            </div>
+
             {a.descricao && (
-              <div style={{ display: 'flex', gap: '8px', fontSize: '14px' }}>
-                <span style={{ color: 'var(--ink-muted)', minWidth: '80px' }}>Descrição</span>
-                <span style={{ color: 'var(--ink)' }}>{a.descricao}</span>
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--line)' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)', fontWeight: 600, marginBottom: '6px' }}>
+                  Descrição
+                </div>
+                <div style={{ fontSize: '15px', color: 'var(--ink)', lineHeight: 1.5 }}>
+                  {a.descricao}
+                </div>
               </div>
             )}
           </div>
 
-          <button
-            onClick={() => { handleToggle(a.id); setTarefaSelecionada(null) }}
-            style={{
-              width: '100%', padding: '12px', borderRadius: '4px',
-              background: 'var(--ink)', color: 'var(--bg)',
-              border: 'none', fontSize: '14px', fontWeight: 500,
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            ✓ Marcar como concluída
-          </button>
+          {/* Footer */}
+          <div style={{
+            padding: '16px 24px', borderTop: '1px solid var(--line)',
+            display: 'flex', gap: '10px', justifyContent: 'flex-end',
+          }}>
+            <button
+              onClick={() => setTarefaSelecionada(null)}
+              style={{
+                padding: '10px 20px', borderRadius: '4px',
+                background: 'transparent', color: 'var(--ink-soft)',
+                border: '1px solid var(--line)', fontSize: '14px', fontWeight: 500,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Fechar
+            </button>
+            <button
+              onClick={() => { handleToggle(a.id); setTarefaSelecionada(null) }}
+              style={{
+                padding: '10px 20px', borderRadius: '4px',
+                background: 'var(--ink)', color: 'var(--bg)',
+                border: 'none', fontSize: '14px', fontWeight: 500,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              ✓ Concluída
+            </button>
+          </div>
         </div>
       </div>
     )
