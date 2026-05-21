@@ -508,7 +508,7 @@ export default function CampanhasPage() {
                 Funil (opcional)
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                 <div>
                   <label style={labelStyle}>Qualif.</label>
                   <input type="number" value={form.leads_qualificados} onChange={(e) => setForm({ ...form, leads_qualificados: e.target.value })} style={inputStyle} placeholder="0" />
