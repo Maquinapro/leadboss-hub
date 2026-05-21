@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import DashboardToDo from '@/components/DashboardToDo'
+import DashboardStats from '@/components/DashboardStats'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -56,16 +57,12 @@ export default async function DashboardPage() {
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 20px 80px' }}>
       <Header userEmail={user.email} />
 
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1px',
-        background: 'var(--line)', border: '1px solid var(--line)',
-        marginBottom: '28px', borderRadius: '4px', overflow: 'hidden',
-      }}>
-        <StatCard label="Clientes ativos" value={String(totalClientesAtivos)} sub="contas no mês" />
-        <StatCard label="Receita prevista" value={formatMoeda(receitaPrevista)} sub="este mês" />
-        <StatCard label="Recebido" value={formatMoeda(recebido)} sub="já entrou no caixa" color="var(--green)" />
-        <StatCard label="Inadimplentes" value={String(inadimplentes)} sub="faturas atrasadas" color={inadimplentes > 0 ? 'var(--accent)' : undefined} />
-      </div>
+      <DashboardStats
+        totalClientesAtivos={totalClientesAtivos}
+        receitaPrevista={receitaPrevista}
+        recebido={recebido}
+        inadimplentes={inadimplentes}
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
         <NavCard href="/sistema/clientes" label="Clientes" description="Cadastro, listagem e detalhes dos clientes da agência" available />
