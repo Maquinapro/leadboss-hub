@@ -328,6 +328,7 @@ export default function CampanhasPage() {
         <StatCard label="CPL médio" value={stats.totalLeads > 0 ? formatMoeda(stats.cplMedio) : '—'} />
         <StatCard label="ROAS médio" value={stats.totalFaturamento > 0 ? formatRoas(stats.roasMedio) : '—'} color={stats.roasMedio >= 3 ? 'var(--green)' : stats.roasMedio >= 1.5 ? '#8a5a00' : stats.totalFaturamento > 0 ? 'var(--accent)' : undefined} />
         <StatCard label="Em alerta" value={String(stats.emAlerta)} sub="CPL acima da meta" color={stats.emAlerta > 0 ? 'var(--accent)' : undefined} />
+        <StatCard label="Faturado" value={stats.totalFaturamento > 0 ? formatMoeda(stats.totalFaturamento) : '—'} color="var(--green)" />
       </div>
 
       {/* Lista de campanhas */}
