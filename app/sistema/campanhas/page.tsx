@@ -319,7 +319,7 @@ export default function CampanhasPage() {
 
       {/* Stats — 5 cards */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1px',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1px',
         background: 'var(--line)', border: '1px solid var(--line)',
         marginBottom: '28px', borderRadius: '4px', overflow: 'hidden',
       }}>
