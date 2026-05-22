@@ -15,6 +15,19 @@ type Plano = {
   permite_valor_customizado: boolean
 }
 
+type Contrato = {
+  id: string
+  descricao: string | null
+  plano_id: string | null
+  plano_nome?: string | null
+  valor_mensal: number
+  dia_vencimento: number
+  responsavel_pagamento: string | null
+  forma_pagamento: string | null
+  data_inicio: string
+  ativo: boolean
+}
+
 type Cliente = {
   id: string
   nome: string
@@ -31,24 +44,12 @@ type Cliente = {
   observacoes: string | null
   meta_cpl_padrao: number | null
   created_at: string
-  contrato_id: string | null
-  plano_id: string | null
-  plano_nome: string | null
   valor_mensal: number | null
-  dia_vencimento: number | null
 }
 
 const PLATAFORMAS_DISPONIVEIS = ['Meta', 'Google', 'LinkedIn', 'YouTube', 'TikTok']
-const SEGMENTOS_SUGERIDOS = [
-  'Odontologia',
-  'Estética',
-  'Advocacia',
-  'Medicina',
-  'Imobiliária',
-  'E-commerce',
-  'Educação',
-  'Outro',
-]
+const SEGMENTOS_SUGERIDOS = ['Odontologia', 'Estética', 'Advocacia', 'Medicina', 'Imobiliária', 'E-commerce', 'Educação', 'Outro']
+const FORMAS_PAGAMENTO = ['PIX', 'Boleto', 'Transferência', 'Cartão de crédito', 'Dinheiro']
 
 const statusConfig: { [key: string]: { label: string; bg: string; color: string } } = {
   ativo: { label: 'Ativo', bg: '#e0ebd9', color: 'var(--green)' },
@@ -62,6 +63,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   const supabase = createClient()
 
   const [cliente, setCliente] = useState<Cliente | null>(null)
+  const [contratos, setContratos] = useState<Contrato[]>([])
   const [planos, setPlanos] = useState<Plano[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -69,6 +71,8 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   const [editMode, setEditMode] = useState(false)
   const [activeTab, setActiveTab] = useState('dados')
   const [faturamentoTotal, setFaturamentoTotal] = useState(0)
+  const [showNovoContrato, setShowNovoContrato] = useState(false)
+  const [savingContrato, setSavingContrato] = useState(false)
 
   const [form, setForm] = useState({
     nome: '',
@@ -76,17 +80,33 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     email: '',
     telefone: '',
     responsavel_contato: '',
-    plano_id: '',
-    valor_mensal: '',
     verba_midia: '',
     plataformas: [] as string[],
     data_entrada: '',
-    dia_vencimento: '5',
     status: 'ativo',
     data_saida: '',
     motivo_saida: '',
     observacoes: '',
   })
+
+  const [novoContrato, setNovoContrato] = useState({
+    descricao: '',
+    plano_id: '',
+    valor_mensal: '',
+    dia_vencimento: '5',
+    responsavel_pagamento: '',
+    forma_pagamento: 'PIX',
+  })
+
+  async function loadContratos() {
+    const { data } = await supabase
+      .from('contratos')
+      .select('*, planos(nome)')
+      .eq('cliente_id', id)
+      .eq('ativo', true)
+      .order('data_inicio')
+    if (data) setContratos(data.map((c: any) => ({ ...c, plano_nome: c.planos?.nome || null })))
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -94,7 +114,6 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
         supabase.from('clientes_completo').select('*').eq('id', id).single(),
         supabase.from('planos').select('id, nome, valor_padrao, permite_valor_customizado'),
       ])
-
       if (clienteData) {
         setCliente(clienteData as Cliente)
         setForm({
@@ -103,12 +122,9 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
           email: clienteData.email || '',
           telefone: clienteData.telefone || '',
           responsavel_contato: clienteData.responsavel_contato || '',
-          plano_id: clienteData.plano_id || '',
-          valor_mensal: clienteData.valor_mensal ? String(clienteData.valor_mensal) : '',
           verba_midia: clienteData.verba_midia ? String(clienteData.verba_midia) : '',
           plataformas: clienteData.plataformas || [],
           data_entrada: clienteData.data_entrada,
-          dia_vencimento: clienteData.dia_vencimento ? String(clienteData.dia_vencimento) : '5',
           status: clienteData.status,
           data_saida: clienteData.data_saida || '',
           motivo_saida: clienteData.motivo_saida || '',
@@ -119,6 +135,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
       setLoading(false)
     }
     loadData()
+    loadContratos()
   }, [id])
 
   useEffect(() => {
@@ -170,26 +187,9 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
       .eq('id', id)
 
     if (clienteError) {
-      setError('Erro ao salvar cliente: ' + clienteError.message)
+      setError('Erro ao salvar: ' + clienteError.message)
       setSaving(false)
       return
-    }
-
-    if (cliente?.contrato_id) {
-      const { error: contratoError } = await supabase
-        .from('contratos')
-        .update({
-          plano_id: form.plano_id || null,
-          valor_mensal: Number(form.valor_mensal),
-          dia_vencimento: Number(form.dia_vencimento),
-        })
-        .eq('id', cliente.contrato_id)
-
-      if (contratoError) {
-        setError('Erro ao salvar contrato: ' + contratoError.message)
-        setSaving(false)
-        return
-      }
     }
 
     const { data: refreshed } = await supabase.from('clientes_completo').select('*').eq('id', id).single()
@@ -198,25 +198,57 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     setSaving(false)
   }
 
+  async function handleAddContrato() {
+    if (!novoContrato.valor_mensal) return
+    setSavingContrato(true)
+
+    const { error: contratoError } = await supabase.from('contratos').insert({
+      cliente_id: id,
+      plano_id: novoContrato.plano_id || null,
+      descricao: novoContrato.descricao || null,
+      valor_mensal: Number(novoContrato.valor_mensal),
+      dia_vencimento: Number(novoContrato.dia_vencimento),
+      responsavel_pagamento: novoContrato.responsavel_pagamento || null,
+      forma_pagamento: novoContrato.forma_pagamento || null,
+      data_inicio: new Date().toISOString().split('T')[0],
+      ativo: true,
+    })
+
+    if (contratoError) {
+      setError('Erro ao adicionar contrato: ' + contratoError.message)
+      setSavingContrato(false)
+      return
+    }
+
+    setNovoContrato({ descricao: '', plano_id: '', valor_mensal: '', dia_vencimento: '5', responsavel_pagamento: '', forma_pagamento: 'PIX' })
+    setShowNovoContrato(false)
+    setSavingContrato(false)
+
+    const [{ data: clienteRefresh }] = await Promise.all([
+      supabase.from('clientes_completo').select('*').eq('id', id).single(),
+    ])
+    if (clienteRefresh) setCliente(clienteRefresh as Cliente)
+    await loadContratos()
+  }
+
+  async function handleDesativarContrato(contratoId: string) {
+    if (!confirm('Desativar esse contrato? Ele não gerará mais faturas.')) return
+    await supabase.from('contratos').update({ ativo: false }).eq('id', contratoId)
+    const { data: clienteRefresh } = await supabase.from('clientes_completo').select('*').eq('id', id).single()
+    if (clienteRefresh) setCliente(clienteRefresh as Cliente)
+    await loadContratos()
+  }
+
   async function handleDelete() {
-    if (!confirm('Tem certeza que quer excluir esse cliente? Essa ação não pode ser desfeita.')) {
-      return
-    }
+    if (!confirm('Tem certeza que quer excluir esse cliente? Essa ação não pode ser desfeita.')) return
     const { error: delError } = await supabase.from('clientes').delete().eq('id', id)
-    if (delError) {
-      alert('Erro ao excluir: ' + delError.message)
-      return
-    }
+    if (delError) { alert('Erro ao excluir: ' + delError.message); return }
     router.push('/sistema/clientes')
     router.refresh()
   }
 
   if (loading) {
-    return (
-      <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '60px 20px', textAlign: 'center', color: 'var(--ink-muted)' }}>
-        Carregando...
-      </div>
-    )
+    return <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '60px 20px', textAlign: 'center', color: 'var(--ink-muted)' }}>Carregando...</div>
   }
 
   if (!cliente) {
@@ -240,22 +272,14 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   )
 
   const inputStyle = {
-    width: '100%',
-    padding: '10px 14px',
-    border: '1px solid var(--line)',
-    borderRadius: '4px',
-    fontSize: '14px',
-    color: 'var(--ink)',
-    background: 'var(--bg-card)',
-    fontFamily: 'inherit',
+    width: '100%', padding: '10px 14px', border: '1px solid var(--line)',
+    borderRadius: '4px', fontSize: '14px', color: 'var(--ink)',
+    background: 'var(--bg-card)', fontFamily: 'inherit',
   }
 
-  const labelStyle = {
-    display: 'block',
-    fontSize: '12px',
-    color: 'var(--ink-soft)',
-    marginBottom: '6px',
-    fontWeight: 500,
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: '12px', color: 'var(--ink-soft)',
+    marginBottom: '6px', fontWeight: 500,
   }
 
   return (
@@ -270,9 +294,7 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
             <span style={{ fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '4px 9px', borderRadius: '3px', fontWeight: 600, background: cfg.bg, color: cfg.color }}>
               {cfg.label}
             </span>
-            <span style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>
-              {cliente.segmento}
-            </span>
+            <span style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>{cliente.segmento}</span>
           </div>
           <h1 className="font-serif" style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
             {cliente.nome}
@@ -284,15 +306,11 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
             <button onClick={() => setEditMode(true)} style={{
               padding: '10px 18px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
               border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-            }}>
-              Editar
-            </button>
+            }}>Editar</button>
             <button onClick={handleDelete} style={{
               padding: '10px 18px', borderRadius: '4px', background: 'transparent', color: 'var(--accent)',
               border: '1px solid var(--line)', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-            }}>
-              Excluir
-            </button>
+            }}>Excluir</button>
           </div>
         )}
       </div>
@@ -315,157 +333,222 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
       </div>
 
       {activeTab === 'dados' && (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', padding: '28px' }}>
+        <div>
           {!editMode ? (
-            <DadosView cliente={cliente} formatMoeda={formatMoeda} />
-          ) : (
-            <form onSubmit={handleSave}>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={labelStyle}>Nome *</label>
-                <input type="text" required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} style={inputStyle} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Dados gerais */}
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', padding: '28px' }}>
+                <DadosView cliente={cliente} formatMoeda={formatMoeda} />
               </div>
 
-              <div style={{ marginBottom: '20px' }}>
-                <label style={labelStyle}>Segmento *</label>
-                <select value={form.segmento} onChange={(e) => setForm({ ...form, segmento: e.target.value })} style={inputStyle}>
-                  {SEGMENTOS_SUGERIDOS.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                <div>
-                  <label style={labelStyle}>E-mail</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={inputStyle} />
+              {/* Contratos */}
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', padding: '28px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h3 className="font-serif" style={{ fontSize: '18px', fontWeight: 600 }}>Contratos ativos</h3>
+                  <button onClick={() => setShowNovoContrato(!showNovoContrato)} style={{
+                    padding: '8px 16px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
+                    border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                  }}>
+                    {showNovoContrato ? 'Cancelar' : '+ Novo contrato'}
+                  </button>
                 </div>
-                <div>
-                  <label style={labelStyle}>Telefone</label>
-                  <input type="text" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} style={inputStyle} />
-                </div>
-              </div>
 
-              <div style={{ marginBottom: '20px' }}>
-                <label style={labelStyle}>Responsável de contato</label>
-                <input type="text" value={form.responsavel_contato} onChange={(e) => setForm({ ...form, responsavel_contato: e.target.value })} style={inputStyle} />
-              </div>
+                {showNovoContrato && (
+                  <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '6px', padding: '20px', marginBottom: '20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={labelStyle}>Descrição do serviço *</label>
+                        <input type="text" value={novoContrato.descricao} onChange={(e) => setNovoContrato({ ...novoContrato, descricao: e.target.value })} style={inputStyle} placeholder="Ex: Tráfego pago, Landing Page..." />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Plano</label>
+                        <select value={novoContrato.plano_id} onChange={(e) => setNovoContrato({ ...novoContrato, plano_id: e.target.value })} style={inputStyle}>
+                          <option value="">Selecione...</option>
+                          {planos.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={labelStyle}>Valor mensal (R$) *</label>
+                        <input type="number" step="0.01" value={novoContrato.valor_mensal} onChange={(e) => setNovoContrato({ ...novoContrato, valor_mensal: e.target.value })} style={inputStyle} placeholder="0.00" />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Dia de vencimento *</label>
+                        <select value={novoContrato.dia_vencimento} onChange={(e) => setNovoContrato({ ...novoContrato, dia_vencimento: e.target.value })} style={inputStyle}>
+                          {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => <option key={d} value={d}>Dia {d}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Forma de pagamento</label>
+                        <select value={novoContrato.forma_pagamento} onChange={(e) => setNovoContrato({ ...novoContrato, forma_pagamento: e.target.value })} style={inputStyle}>
+                          {FORMAS_PAGAMENTO.map((f) => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: '16px' }}>
+                      <label style={labelStyle}>Responsável pelo pagamento</label>
+                      <input type="text" value={novoContrato.responsavel_pagamento} onChange={(e) => setNovoContrato({ ...novoContrato, responsavel_pagamento: e.target.value })} style={inputStyle} placeholder="Ex: João Silva (Parceiro), Próprio cliente..." />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button onClick={handleAddContrato} disabled={savingContrato || !novoContrato.valor_mensal} style={{
+                        padding: '10px 20px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
+                        border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                        opacity: savingContrato || !novoContrato.valor_mensal ? 0.4 : 1,
+                      }}>
+                        {savingContrato ? 'Salvando...' : 'Adicionar contrato'}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                <div>
-                  <label style={labelStyle}>Plano *</label>
-                  <select required value={form.plano_id} onChange={(e) => setForm({ ...form, plano_id: e.target.value })} style={inputStyle}>
-                    <option value="">Selecione...</option>
-                    {planos.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={labelStyle}>Valor mensal (R$) *</label>
-                  <input type="number" required step="0.01" value={form.valor_mensal} onChange={(e) => setForm({ ...form, valor_mensal: e.target.value })} style={inputStyle} />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={labelStyle}>Verba de mídia (R$)</label>
-                <input type="number" step="0.01" value={form.verba_midia} onChange={(e) => setForm({ ...form, verba_midia: e.target.value })} style={inputStyle} />
-              </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={labelStyle}>Plataformas</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {PLATAFORMAS_DISPONIVEIS.map((p) => {
-                    const ativo = form.plataformas.includes(p)
-                    return (
-                      <button type="button" key={p} onClick={() => togglePlataforma(p)} style={{
-                        padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 500, cursor: 'pointer',
-                        border: '1.5px solid', borderColor: ativo ? 'var(--ink)' : 'var(--line)',
-                        background: ativo ? 'var(--ink)' : 'transparent', color: ativo ? 'var(--bg)' : 'var(--ink-soft)',
-                        fontFamily: 'inherit',
-                      }}>{p}</button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                <div>
-                  <label style={labelStyle}>Data de entrada *</label>
-                  <input type="date" required value={form.data_entrada} onChange={(e) => setForm({ ...form, data_entrada: e.target.value })} style={inputStyle} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Dia de vencimento *</label>
-                  <select required value={form.dia_vencimento} onChange={(e) => setForm({ ...form, dia_vencimento: e.target.value })} style={inputStyle}>
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                      <option key={d} value={d}>Dia {d}</option>
+                {contratos.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '32px', color: 'var(--ink-muted)', fontSize: '14px', fontStyle: 'italic' }}>
+                    Nenhum contrato ativo.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {contratos.map((c) => (
+                      <div key={c.id} style={{
+                        border: '1px solid var(--line)', borderRadius: '6px', padding: '16px 20px',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap',
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '6px', color: 'var(--ink)' }}>
+                            {c.descricao || 'Sem descrição'}
+                            {c.plano_nome && <span style={{ fontWeight: 400, color: 'var(--ink-muted)', fontSize: '13px' }}> · {c.plano_nome}</span>}
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: 'var(--ink-soft)' }}>
+                            <span><strong style={{ color: 'var(--ink)' }}>{formatMoeda(c.valor_mensal)}</strong>/mês</span>
+                            <span>Vence dia {c.dia_vencimento}</span>
+                            {c.responsavel_pagamento && <span>Paga: {c.responsavel_pagamento}</span>}
+                            {c.forma_pagamento && <span>via {c.forma_pagamento}</span>}
+                          </div>
+                        </div>
+                        <button onClick={() => handleDesativarContrato(c.id)} style={{
+                          background: 'transparent', border: '1px solid var(--line)', borderRadius: '4px',
+                          padding: '6px 12px', fontSize: '12px', color: 'var(--ink-muted)',
+                          cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                        }}>Desativar</button>
+                      </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', padding: '28px' }}>
+              <form onSubmit={handleSave}>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={labelStyle}>Nome *</label>
+                  <input type="text" required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} style={inputStyle} />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={labelStyle}>Segmento *</label>
+                  <select value={form.segmento} onChange={(e) => setForm({ ...form, segmento: e.target.value })} style={inputStyle}>
+                    {SEGMENTOS_SUGERIDOS.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label style={labelStyle}>Status *</label>
-                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} style={inputStyle}>
-                    <option value="ativo">Ativo</option>
-                    <option value="pausado">Pausado</option>
-                    <option value="cancelado">Cancelado</option>
-                  </select>
-                </div>
-              </div>
-
-              {form.status === 'cancelado' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                   <div>
-                    <label style={labelStyle}>Data de saída</label>
-                    <input type="date" value={form.data_saida} onChange={(e) => setForm({ ...form, data_saida: e.target.value })} style={inputStyle} />
+                    <label style={labelStyle}>E-mail</label>
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={inputStyle} />
                   </div>
                   <div>
-                    <label style={labelStyle}>Motivo da saída</label>
-                    <input type="text" value={form.motivo_saida} onChange={(e) => setForm({ ...form, motivo_saida: e.target.value })} style={inputStyle} placeholder="Ex: preço, sem resultado, mudou de agência..." />
+                    <label style={labelStyle}>Telefone</label>
+                    <input type="text" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} style={inputStyle} />
                   </div>
                 </div>
-              )}
-
-              <div style={{ marginBottom: '24px' }}>
-                <label style={labelStyle}>Observações</label>
-                <textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }} />
-              </div>
-
-              {error && (
-                <div style={{ background: 'var(--accent-soft)', color: 'var(--accent)', padding: '12px 14px', borderRadius: '4px', fontSize: '13px', marginBottom: '16px' }}>
-                  {error}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={labelStyle}>Responsável de contato</label>
+                  <input type="text" value={form.responsavel_contato} onChange={(e) => setForm({ ...form, responsavel_contato: e.target.value })} style={inputStyle} />
                 </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setEditMode(false)} style={{
-                  padding: '12px 20px', borderRadius: '4px', fontSize: '14px', fontWeight: 500,
-                  color: 'var(--ink-soft)', border: '1px solid var(--line)', background: 'transparent',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>Cancelar</button>
-                <button type="submit" disabled={saving} style={{
-                  padding: '12px 24px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
-                  border: 'none', fontSize: '14px', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer',
-                  opacity: saving ? 0.6 : 1, fontFamily: 'inherit',
-                }}>{saving ? 'Salvando...' : 'Salvar alterações'}</button>
-              </div>
-            </form>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={labelStyle}>Verba de mídia (R$)</label>
+                  <input type="number" step="0.01" value={form.verba_midia} onChange={(e) => setForm({ ...form, verba_midia: e.target.value })} style={inputStyle} />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={labelStyle}>Plataformas</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {PLATAFORMAS_DISPONIVEIS.map((p) => {
+                      const ativo = form.plataformas.includes(p)
+                      return (
+                        <button type="button" key={p} onClick={() => togglePlataforma(p)} style={{
+                          padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+                          border: '1.5px solid', borderColor: ativo ? 'var(--ink)' : 'var(--line)',
+                          background: ativo ? 'var(--ink)' : 'transparent', color: ativo ? 'var(--bg)' : 'var(--ink-soft)',
+                          fontFamily: 'inherit',
+                        }}>{p}</button>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                  <div>
+                    <label style={labelStyle}>Data de entrada *</label>
+                    <input type="date" required value={form.data_entrada} onChange={(e) => setForm({ ...form, data_entrada: e.target.value })} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Status *</label>
+                    <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} style={inputStyle}>
+                      <option value="ativo">Ativo</option>
+                      <option value="pausado">Pausado</option>
+                      <option value="cancelado">Cancelado</option>
+                    </select>
+                  </div>
+                </div>
+                {form.status === 'cancelado' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '20px' }}>
+                    <div>
+                      <label style={labelStyle}>Data de saída</label>
+                      <input type="date" value={form.data_saida} onChange={(e) => setForm({ ...form, data_saida: e.target.value })} style={inputStyle} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Motivo da saída</label>
+                      <input type="text" value={form.motivo_saida} onChange={(e) => setForm({ ...form, motivo_saida: e.target.value })} style={inputStyle} placeholder="Ex: preço, sem resultado, mudou de agência..." />
+                    </div>
+                  </div>
+                )}
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={labelStyle}>Observações</label>
+                  <textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }} />
+                </div>
+                {error && (
+                  <div style={{ background: 'var(--accent-soft)', color: 'var(--accent)', padding: '12px 14px', borderRadius: '4px', fontSize: '13px', marginBottom: '16px' }}>
+                    {error}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button type="button" onClick={() => setEditMode(false)} style={{
+                    padding: '12px 20px', borderRadius: '4px', fontSize: '14px', fontWeight: 500,
+                    color: 'var(--ink-soft)', border: '1px solid var(--line)', background: 'transparent',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}>Cancelar</button>
+                  <button type="submit" disabled={saving} style={{
+                    padding: '12px 24px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
+                    border: 'none', fontSize: '14px', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer',
+                    opacity: saving ? 0.6 : 1, fontFamily: 'inherit',
+                  }}>{saving ? 'Salvando...' : 'Salvar alterações'}</button>
+                </div>
+              </form>
+            </div>
           )}
         </div>
       )}
 
-      {activeTab === 'historico' && (
-        <ClienteHistorico clienteId={cliente.id} />
-      )}
+      {activeTab === 'historico' && <ClienteHistorico clienteId={cliente.id} />}
 
       {activeTab === 'pagamentos' && (
         <ClientePagamentos cliente={{
-          id: cliente.id,
-          nome: cliente.nome,
-          email: cliente.email,
-          telefone: cliente.telefone,
+          id: cliente.id, nome: cliente.nome,
+          email: cliente.email, telefone: cliente.telefone,
           data_entrada: cliente.data_entrada,
         }} />
       )}
 
       {activeTab === 'campanhas' && (
         <ClienteCampanhas cliente={{
-          id: cliente.id,
-          nome: cliente.nome,
+          id: cliente.id, nome: cliente.nome,
           plataformas: cliente.plataformas,
           meta_cpl_padrao: cliente.meta_cpl_padrao,
         }} />
@@ -502,7 +585,6 @@ function TabBtn({ label, active, onClick }: { label: string; active: boolean; on
 
 function DadosView({ cliente, formatMoeda }: { cliente: Cliente; formatMoeda: (v: number) => string }) {
   const dataEntradaStr = new Date(cliente.data_entrada).toLocaleDateString('pt-BR')
-
   const Item = ({ label, value }: { label: string; value: string | null }) => (
     <div style={{ marginBottom: '18px' }}>
       <div style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)', marginBottom: '4px', fontWeight: 600 }}>
@@ -513,18 +595,14 @@ function DadosView({ cliente, formatMoeda }: { cliente: Cliente; formatMoeda: (v
       </div>
     </div>
   )
-
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px 24px' }}>
       <Item label="E-mail" value={cliente.email} />
       <Item label="Telefone" value={cliente.telefone} />
       <Item label="Responsável de contato" value={cliente.responsavel_contato} />
-      <Item label="Plano" value={cliente.plano_nome} />
-      <Item label="Valor mensal" value={formatMoeda(Number(cliente.valor_mensal ?? 0))} />
       <Item label="Verba de mídia" value={cliente.verba_midia ? formatMoeda(Number(cliente.verba_midia)) : null} />
       <Item label="Plataformas" value={cliente.plataformas?.join(', ') || null} />
       <Item label="Data de entrada" value={dataEntradaStr} />
-      <Item label="Dia de vencimento" value={cliente.dia_vencimento ? `Dia ${cliente.dia_vencimento}` : null} />
       {cliente.data_saida && <Item label="Data de saída" value={new Date(cliente.data_saida).toLocaleDateString('pt-BR')} />}
       {cliente.motivo_saida && <Item label="Motivo da saída" value={cliente.motivo_saida} />}
       {cliente.observacoes && (
