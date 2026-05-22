@@ -12,7 +12,6 @@ type Cliente = {
   segmento: string
   status: string
   valor_mensal: number | null
-  plano_nome: string | null
   data_entrada: string
   plataformas: string[] | null
   created_at: string
@@ -47,7 +46,7 @@ export default function ClientesPage() {
 
       const { data } = await supabase
         .from('clientes_completo')
-        .select('id, nome, segmento, status, valor_mensal, plano_nome, data_entrada, plataformas, created_at')
+        .select('id, nome, segmento, status, valor_mensal, data_entrada, plataformas, created_at')
         .order('created_at', { ascending: false })
 
       if (data) setClientes(data as Cliente[])
@@ -196,7 +195,7 @@ export default function ClientesPage() {
                 </div>
 
                 <div style={{ fontSize: '12px', color: 'var(--ink-muted)', marginBottom: '10px' }}>
-                  {c.segmento}{c.plano_nome && <> · {c.plano_nome}</>}
+                  {c.segmento}
                 </div>
 
                 {c.plataformas && c.plataformas.length > 0 && (
