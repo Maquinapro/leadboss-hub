@@ -7,12 +7,13 @@ import Header from '@/components/Header'
 import { createClient } from '@/lib/supabase-client'
 import { gerarReciboPDF, carregarLogoBase64 } from '@/components/ReciboPDF'
 
-type Cliente = {
+type ContratoAtivo = {
   id: string
-  nome: string
+  cliente_id: string
+  cliente_nome: string
+  descricao: string | null
   valor_mensal: number
-  dia_vencimento: number | null
-  status: string
+  dia_vencimento: number
 }
 
 type Pagamento = {
@@ -62,7 +63,7 @@ export default function PagamentosPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [clientes, setClientes] = useState<Cliente[]>([])
+  const [contratos, setContratos] = useState<ContratoAtivo[]>([])
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([])
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
@@ -94,17 +95,27 @@ export default function PagamentosPage() {
     const mesIni = toISODate(mesAtual)
 
     const [{ data: clientesData }, { data: pagamentosData }] = await Promise.all([
-      supabase.from('clientes_completo')
-        .select('id, nome, valor_mensal, dia_vencimento, status')
-        .eq('status', 'ativo')
-        .order('nome'),
+      supabase.from('contratos')
+        .select('id, cliente_id, descricao, valor_mensal, dia_vencimento, clientes!inner(nome, status)')
+        .eq('ativo', true)
+        .eq('clientes.status', 'ativo')
+        .order('dia_vencimento'),
       supabase.from('pagamentos')
         .select('*, cliente:clientes (nome, email, telefone)')
         .eq('mes_referencia', mesIni)
         .order('data_vencimento'),
     ])
 
-    if (clientesData) setClientes(clientesData)
+    if (clientesData) {
+      setContratos(clientesData.map((c: any) => ({
+        id: c.id,
+        cliente_id: c.cliente_id,
+        cliente_nome: c.clientes?.nome || 'Sem nome',
+        descricao: c.descricao,
+        valor_mensal: c.valor_mensal,
+        dia_vencimento: c.dia_vencimento,
+      })))
+    }
     if (pagamentosData) {
       const hojeISO = toISODate(new Date())
       const atualizados = (pagamentosData as unknown as Pagamento[]).map((p) => {
@@ -148,7 +159,7 @@ export default function PagamentosPage() {
 
     const { data: existentes } = await supabase
       .from('pagamentos')
-      .select('cliente_id')
+      .select('contrato_id')
       .eq('mes_referencia', mesIni)
 
     const clientesJaCobrados = new Set((existentes || []).map((e) => e.cliente_id))
