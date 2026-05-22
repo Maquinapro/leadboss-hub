@@ -73,6 +73,8 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   const [faturamentoTotal, setFaturamentoTotal] = useState(0)
   const [showNovoContrato, setShowNovoContrato] = useState(false)
   const [savingContrato, setSavingContrato] = useState(false)
+  const [editandoContrato, setEditandoContrato] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ descricao: '', responsavel_pagamento: '', forma_pagamento: 'PIX' })
 
   const [form, setForm] = useState({
     nome: '',
@@ -236,6 +238,18 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     await supabase.from('contratos').update({ ativo: false }).eq('id', contratoId)
     const { data: clienteRefresh } = await supabase.from('clientes_completo').select('*').eq('id', id).single()
     if (clienteRefresh) setCliente(clienteRefresh as Cliente)
+    await loadContratos()
+  }
+
+  async function handleSalvarEdicaoContrato(contratoId: string) {
+    setSavingContrato(true)
+    await supabase.from('contratos').update({
+      descricao: editForm.descricao || null,
+      responsavel_pagamento: editForm.responsavel_pagamento || null,
+      forma_pagamento: editForm.forma_pagamento || null,
+    }).eq('id', contratoId)
+    setEditandoContrato(null)
+    setSavingContrato(false)
     await loadContratos()
   }
 
@@ -414,22 +428,71 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
                         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap',
                       }}>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '6px', color: 'var(--ink)' }}>
-                            {c.descricao || 'Sem descrição'}
-                            {c.plano_nome && <span style={{ fontWeight: 400, color: 'var(--ink-muted)', fontSize: '13px' }}> · {c.plano_nome}</span>}
-                          </div>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: 'var(--ink-soft)' }}>
-                            <span><strong style={{ color: 'var(--ink)' }}>{formatMoeda(c.valor_mensal)}</strong>/mês</span>
-                            <span>Vence dia {c.dia_vencimento}</span>
-                            {c.responsavel_pagamento && <span>Paga: {c.responsavel_pagamento}</span>}
-                            {c.forma_pagamento && <span>via {c.forma_pagamento}</span>}
-                          </div>
+                          {editandoContrato === c.id ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                              <input
+                                type="text"
+                                value={editForm.descricao}
+                                onChange={(e) => setEditForm({ ...editForm, descricao: e.target.value })}
+                                placeholder="Descrição do serviço"
+                                style={{ padding: '8px 12px', border: '1px solid var(--line)', borderRadius: '4px', fontSize: '14px', fontFamily: 'inherit', color: 'var(--ink)', background: 'var(--bg-card)' }}
+                              />
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                <input
+                                  type="text"
+                                  value={editForm.responsavel_pagamento}
+                                  onChange={(e) => setEditForm({ ...editForm, responsavel_pagamento: e.target.value })}
+                                  placeholder="Responsável pelo pagamento"
+                                  style={{ padding: '8px 12px', border: '1px solid var(--line)', borderRadius: '4px', fontSize: '13px', fontFamily: 'inherit', color: 'var(--ink)', background: 'var(--bg-card)' }}
+                                />
+                                <select
+                                  value={editForm.forma_pagamento}
+                                  onChange={(e) => setEditForm({ ...editForm, forma_pagamento: e.target.value })}
+                                  style={{ padding: '8px 12px', border: '1px solid var(--line)', borderRadius: '4px', fontSize: '13px', fontFamily: 'inherit', color: 'var(--ink)', background: 'var(--bg-card)' }}
+                                >
+                                  {FORMAS_PAGAMENTO.map((f) => <option key={f} value={f}>{f}</option>)}
+                                </select>
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button onClick={() => handleSalvarEdicaoContrato(c.id)} disabled={savingContrato} style={{
+                                  padding: '7px 14px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
+                                  border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                                }}>Salvar</button>
+                                <button onClick={() => setEditandoContrato(null)} style={{
+                                  padding: '7px 14px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-muted)',
+                                  border: '1px solid var(--line)', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit',
+                                }}>Cancelar</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '6px', color: 'var(--ink)' }}>
+                                {c.descricao || 'Sem descrição'}
+                                {c.plano_nome && <span style={{ fontWeight: 400, color: 'var(--ink-muted)', fontSize: '13px' }}> · {c.plano_nome}</span>}
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: 'var(--ink-soft)' }}>
+                                <span><strong style={{ color: 'var(--ink)' }}>{formatMoeda(c.valor_mensal)}</strong>/mês</span>
+                                <span>Vence dia {c.dia_vencimento}</span>
+                                {c.responsavel_pagamento && <span>Paga: {c.responsavel_pagamento}</span>}
+                                {c.forma_pagamento && <span>via {c.forma_pagamento}</span>}
+                              </div>
+                            </>
+                          )}
                         </div>
-                        <button onClick={() => handleDesativarContrato(c.id)} style={{
-                          background: 'transparent', border: '1px solid var(--line)', borderRadius: '4px',
-                          padding: '6px 12px', fontSize: '12px', color: 'var(--ink-muted)',
-                          cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-                        }}>Desativar</button>
+                        {editandoContrato !== c.id && (
+                          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                            <button onClick={() => { setEditandoContrato(c.id); setEditForm({ descricao: c.descricao || '', responsavel_pagamento: c.responsavel_pagamento || '', forma_pagamento: c.forma_pagamento || 'PIX' }) }} style={{
+                              background: 'transparent', border: '1px solid var(--line)', borderRadius: '4px',
+                              padding: '6px 12px', fontSize: '12px', color: 'var(--ink-muted)',
+                              cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                            }}>Editar</button>
+                            <button onClick={() => handleDesativarContrato(c.id)} style={{
+                              background: 'transparent', border: '1px solid var(--line)', borderRadius: '4px',
+                              padding: '6px 12px', fontSize: '12px', color: 'var(--ink-muted)',
+                              cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                            }}>Desativar</button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
