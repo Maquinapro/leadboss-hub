@@ -28,6 +28,8 @@ type Pagamento = {
   nota_fiscal: string | null
   observacoes: string | null
   cliente: { nome: string; email: string | null; telefone: string | null } | null
+  contrato_id: string | null
+  contrato: { descricao: string | null } | null
 }
 
 const MESES_NOMES = [
@@ -101,7 +103,7 @@ export default function PagamentosPage() {
         .eq('clientes.status', 'ativo')
         .order('dia_vencimento'),
       supabase.from('pagamentos')
-        .select('*, cliente:clientes (nome, email, telefone)')
+        .select('*, cliente:clientes (nome, email, telefone), contrato:contratos (descricao)')
         .eq('mes_referencia', mesIni)
         .order('data_vencimento'),
     ])
@@ -435,9 +437,14 @@ export default function PagamentosPage() {
                 flexWrap: 'wrap',
               }}>
                 <div style={{ flex: 1, minWidth: '180px' }}>
-                  <div className="font-serif" style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>
+                  <div className="font-serif" style={{ fontSize: '16px', fontWeight: 600, marginBottom: '2px' }}>
                     {p.cliente?.nome || '—'}
                   </div>
+                  {p.contrato?.descricao && (
+                    <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 500, marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      {p.contrato.descricao}
+                    </div>
+                  )}
                   <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>
                     Vence em {formatDataBR(p.data_vencimento)}
                     {p.data_pagamento && <> · Pago em {formatDataBR(p.data_pagamento)}</>}
