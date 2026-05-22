@@ -162,22 +162,15 @@ export default function PagamentosPage() {
       .select('contrato_id')
       .eq('mes_referencia', mesIni)
 
-    const clientesJaCobrados = new Set((existentes || []).map((e) => e.cliente_id))
-
-    const clientesSemDia = clientes.filter((c) => !c.dia_vencimento)
-    if (clientesSemDia.length > 0) {
-      setError(`Esses clientes estão sem dia de vencimento configurado: ${clientesSemDia.map((c) => c.nome).join(', ')}. Edite cada um pra adicionar o dia.`)
-      setGenerating(false)
-      return
-    }
-
-    const novasFaturas = clientes
-      .filter((c) => !clientesJaCobrados.has(c.id) && c.dia_vencimento)
+    const contratosJaCobrados = new Set((existentes || []).map((e) => e.contrato_id).filter(Boolean))
+    const novasFaturas = contratos
+      .filter((c) => !contratosJaCobrados.has(c.id))
       .map((c) => {
-        const dia = Math.min(c.dia_vencimento!, ultimoDia)
+        const dia = Math.min(c.dia_vencimento, ultimoDia)
         const vencimento = new Date(ano, mes, dia)
         return {
-          cliente_id: c.id,
+          cliente_id: c.cliente_id,
+          contrato_id: c.id,
           mes_referencia: mesIni,
           valor: c.valor_mensal,
           data_vencimento: toISODate(vencimento),
