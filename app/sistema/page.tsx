@@ -68,6 +68,7 @@ export default async function DashboardPage() {
         <NavCard href="/sistema/clientes" label="Clientes" description="Cadastro, listagem e detalhes dos clientes da agência" available />
         <NavCard href="/sistema/pagamentos" label="Pagamentos" description="Controle de faturas, recebimentos e inadimplência" available />
         <NavCard href="/sistema/campanhas" label="Campanhas" description="KPIs de Meta, Google e LinkedIn Ads por cliente" available />
+        <NavCard href="/sistema/despesas" label="Despesas" description="Contas a pagar, cartões, parcelas e fluxo de caixa" available />
       </div>
 
       <DashboardToDo />
