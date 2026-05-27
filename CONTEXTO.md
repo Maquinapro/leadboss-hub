@@ -180,3 +180,26 @@ Cliente: Marry Helen Domingues de Matos Vitale
 - GTM: GTM-N2R38654
 - Meta Pixel: 853098353836873
 - GA4: pendente (configurar via GTM)
+
+
+---
+
+## 🔄 Atualizações recentes (maio/2026)
+
+### Banco — mudanças
+- `contratos`: adicionados campos `descricao`, `responsavel_pagamento`, `forma_pagamento`
+- Removido índice único `idx_contrato_ativo_por_cliente` (cliente pode ter múltiplos contratos)
+- `pagamentos`: removido UNIQUE(cliente_id, mes_referencia), adicionado UNIQUE(contrato_id, mes_referencia)
+- View `clientes_completo` atualizada: `valor_mensal` = SUM de todos contratos ativos
+- Novas tabelas: `cartoes`, `despesas`
+
+### Funcionalidades adicionadas
+- Múltiplos contratos por cliente (com descrição, responsável, forma de pagamento)
+- Edição inline de contrato na tela do cliente
+- Geração de faturas por contrato (não mais por cliente)
+- Descrição do serviço aparece em cada fatura
+- Módulo de despesas: categorias, origens, parcelamento automático
+- Cadastro de cartões de crédito com cor personalizada
+- Modo privado nos stats do dashboard (olhinho)
+- Calendário To Do no dashboard (grade desktop, agenda mobile)
+- Header: Client *Hub*
