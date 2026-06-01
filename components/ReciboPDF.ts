@@ -230,6 +230,7 @@ export async function gerarReciboPDF(pagamento: Pagamento, config: Configuracoes
   if (pagamento.metodo_pagamento) detalhes.push(['Método', pagamento.metodo_pagamento])
   detalhes.push(['Referência', `${mesNome.charAt(0).toUpperCase() + mesNome.slice(1)} de ${anoRef}`])
   if (pagamento.nota_fiscal) detalhes.push(['Nota fiscal', pagamento.nota_fiscal])
+  if (config.chave_pix) detalhes.push(['Chave PIX', config.chave_pix])
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
@@ -330,7 +331,7 @@ export async function gerarReciboPDF(pagamento: Pagamento, config: Configuracoes
 // Converte a imagem do logo em base64 (pra embutir no PDF)
 export async function carregarLogoBase64(): Promise<string | null> {
   try {
-    const response = await fetch('/leadboss-logo.png')
+    const response = await fetch('/leadboss-ads-logo.png')
     const blob = await response.blob()
     return new Promise((resolve) => {
       const reader = new FileReader()
