@@ -66,7 +66,7 @@ export default async function DashboardPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
         <NavCard href="/sistema/clientes" label="Clientes" description="Cadastro, listagem e detalhes dos clientes da agência" available />
-        <NavCard href="/sistema/pagamentos" label="Pagamentos" description="Controle de faturas, recebimentos e inadimplência" available />
+        <NavCard href="/sistema/pagamentos" label="Recebimentos" description="Controle de faturas, recebimentos e inadimplência" available />
         <NavCard href="/sistema/campanhas" label="Campanhas" description="KPIs de Meta, Google e LinkedIn Ads por cliente" available />
         <NavCard href="/sistema/despesas" label="Despesas" description="Contas a pagar, cartões, parcelas e fluxo de caixa" available />
       </div>

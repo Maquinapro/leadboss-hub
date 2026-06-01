@@ -342,7 +342,7 @@ export default function PagamentosPage() {
             ← Dashboard
           </Link>
           <h2 className="font-serif" style={{ fontSize: '36px', fontWeight: 600, letterSpacing: '-0.02em', marginTop: '8px', lineHeight: 1 }}>
-            Pagamentos
+            Recebimentos
           </h2>
         </div>
 
