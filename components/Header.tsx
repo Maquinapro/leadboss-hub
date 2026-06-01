@@ -88,7 +88,7 @@ export default function Header({ userEmail }: HeaderProps) {
         {userEmail && <div style={{ marginTop: '4px' }}>{userEmail}</div>}
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '6px' }}>
           <Link
-            href="/configuracoes"
+            href="/sistema/configuracoes"
             style={{
               color: 'var(--ink-muted)',
               fontSize: '11px',
