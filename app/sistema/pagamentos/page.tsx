@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import { createClient } from '@/lib/supabase-client'
 import { gerarReciboPDF, carregarLogoBase64 } from '@/components/ReciboPDF'
+import { gerarFaturaPDF } from '@/components/FaturaPDF'
 
 type ContratoAtivo = {
   id: string
@@ -71,6 +72,7 @@ export default function PagamentosPage() {
   const [userEmail, setUserEmail] = useState('')
   const [generating, setGenerating] = useState(false)
   const [gerandoRecibo, setGerandoRecibo] = useState<string | null>(null)
+  const [gerandoFatura, setGerandoFatura] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [pagamentoSelecionado, setPagamentoSelecionado] = useState<Pagamento | null>(null)
   const [saving, setSaving] = useState(false)
@@ -257,6 +259,26 @@ export default function PagamentosPage() {
     await loadData()
   }
 
+
+  async function handleGerarFatura(p: Pagamento) {
+    setGerandoFatura(p.id)
+    try {
+      const logoBase64 = await carregarLogoBase64()
+      const { data: configData } = await supabase
+        .from('configuracoes')
+        .select('*')
+        .single()
+      if (!configData) { setError('Configure os dados da agência primeiro.'); return }
+      const ultimoNumero = configData.ultimo_numero_fatura || 549
+      const novoNumero = ultimoNumero + 1
+      await supabase.from('configuracoes').update({ ultimo_numero_fatura: novoNumero }).eq('id', configData.id)
+      await gerarFaturaPDF(p, configData, novoNumero, logoBase64 || undefined)
+    } catch (err) {
+      setError('Erro ao gerar fatura: ' + (err as Error).message)
+    } finally {
+      setGerandoFatura(null)
+    }
+  }
   async function handleGerarRecibo(p: Pagamento) {
     setGerandoRecibo(p.id)
     setError('')
@@ -487,6 +509,14 @@ export default function PagamentosPage() {
                       }}>
                         Reverter
                       </button>
+                      <button onClick={() => handleGerarFatura(p)} disabled={gerandoFatura === p.id} style={{
+                        padding: '6px 14px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
+                        border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500,
+                        cursor: gerandoFatura === p.id ? 'not-allowed' : 'pointer',
+                        opacity: gerandoFatura === p.id ? 0.6 : 1, fontFamily: 'inherit',
+                      }}>
+                        {gerandoFatura === p.id ? 'Gerando...' : '🧾 Fatura'}
+                      </button>
                     </>
                   ) : (
                     <button onClick={() => abrirModalPagamento(p)} style={{
@@ -496,6 +526,14 @@ export default function PagamentosPage() {
                       Marcar como pago
                     </button>
                   )}
+                  <button onClick={() => handleGerarFatura(p)} disabled={gerandoFatura === p.id} style={{
+                    padding: '6px 14px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
+                    border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500,
+                    cursor: gerandoFatura === p.id ? 'not-allowed' : 'pointer',
+                    opacity: gerandoFatura === p.id ? 0.6 : 1, fontFamily: 'inherit',
+                  }}>
+                    {gerandoFatura === p.id ? 'Gerando...' : '🧾 Fatura'}
+                  </button>
                   <button onClick={() => handleDelete(p.id)} title="Excluir" style={{
                     padding: '6px 10px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-muted)',
                     border: '1px solid var(--line)', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit',
