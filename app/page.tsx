@@ -56,7 +56,7 @@ export default function HomePage() {
       </nav>
 
       {/* ===== HERO ===== */}
-      <section style={{ padding: 'clamp(60px, 10vw, 120px) 24px clamp(60px, 8vw, 100px)' }}>
+      <section style={{ padding: 'clamp(48px, 8vw, 96px) 24px clamp(40px, 6vw, 72px)' }}>
         <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
           <div className="hero-grid">
 
@@ -91,22 +91,6 @@ export default function HomePage() {
                   Como funciona
                 </a>
               </div>
-
-              <div style={{ marginTop: '64px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
-                <div className="brand-caps" style={{ marginBottom: '16px' }}>
-                  * Plataformas que trabalhamos
-                </div>
-                <div style={{ display: 'flex', gap: 'clamp(20px, 3vw, 40px)', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {['Meta', 'Google', 'LinkedIn', 'TikTok'].map((p) => (
-                    <span key={p} className="font-serif" style={{
-                      fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 600,
-                      letterSpacing: '-0.01em', color: 'var(--ink-soft)',
-                    }}>
-                      {p}
-                    </span>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Coluna direita: vídeo globo */}
@@ -130,6 +114,23 @@ export default function HomePage() {
               </video>
             </div>
 
+          </div>
+
+          {/* Plataformas — fora do grid para não esticar a coluna de texto */}
+          <div style={{ marginTop: '48px', paddingTop: '28px', borderTop: '1px solid var(--line)' }}>
+            <div className="brand-caps" style={{ marginBottom: '14px' }}>
+              * Plataformas que trabalhamos
+            </div>
+            <div style={{ display: 'flex', gap: 'clamp(20px, 3vw, 40px)', flexWrap: 'wrap', alignItems: 'center' }}>
+              {['Meta', 'Google', 'LinkedIn', 'TikTok'].map((p) => (
+                <span key={p} className="font-serif" style={{
+                  fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 600,
+                  letterSpacing: '-0.01em', color: 'var(--ink-soft)',
+                }}>
+                  {p}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -494,7 +495,7 @@ export default function HomePage() {
         .hero-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 48px;
+          gap: 32px;
           align-items: center;
         }
         .hero-globe {
