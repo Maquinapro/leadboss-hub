@@ -36,7 +36,7 @@ export default function HomePage() {
           <div className="nav-desktop" style={{ alignItems: 'center', fontSize: '14px' }}>
             <a href="#para-quem" style={{ color: 'var(--ink-soft)' }}>Para quem</a>
             <a href="#como-funciona" style={{ color: 'var(--ink-soft)' }}>Como funciona</a>
-            <a href="#planos" style={{ color: 'var(--ink-soft)' }}>Planos</a>
+            <a href="#landing-pages" style={{ color: 'var(--ink-soft)' }}>Landing Pages</a>
             <a href={WHATSAPP_URL} target="_blank" style={{
               background: 'var(--ink)', color: 'var(--bg)',
               padding: '8px 18px', borderRadius: '4px', fontWeight: 500, whiteSpace: 'nowrap',
@@ -86,11 +86,11 @@ export default function HomePage() {
             }}>
               Fale com um especialista →
             </a>
-            <a href="#planos" style={{
+            <a href="#como-funciona" style={{
               padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
               fontSize: '15px', border: '1px solid var(--line)', color: 'var(--ink-soft)',
             }}>
-              Ver planos
+              Como funciona
             </a>
           </div>
 
@@ -330,71 +330,58 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== PLANOS ===== */}
-      <section id="planos" style={{ padding: 'clamp(60px, 10vw, 100px) 24px', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <div className="brand-caps" style={{ marginBottom: '12px' }}>* Investimento</div>
-          <h2 className="font-serif" style={{
-            fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
-            letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '12px',
-          }}>
-            Três caminhos. <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>Você escolhe o seu.</em>
-          </h2>
-          <p style={{ fontSize: '16px', color: 'var(--ink-soft)', maxWidth: '560px', margin: '0 auto' }}>
-            Cada plano é pensado pra um momento do negócio. Comece de onde você está hoje.
-          </p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-          {[
-            { nome: 'Essencial', valor: 'R$ 949', periodo: '/ mês', tagline: 'Base sólida pra começar com previsibilidade.', paraQuem: 'Negócios que estão começando no tráfego pago e querem um fluxo constante de leads qualificados.', itens: ['Gestão de tráfego em uma plataforma (Meta OU Google)','Criação de campanhas de geração de leads','Relatórios quinzenais','Configuração de pixels e tags de rastreamento'], destaque: false },
-            { nome: 'Performance', valor: 'R$ 1.500', periodo: '/ mês', tagline: 'Crescimento acelerado com mais canais.', paraQuem: 'Negócios que já investem em tráfego e querem escalar com Meta + Google trabalhando juntos.', itens: ['Gestão em duas plataformas (Meta E Google)','Estratégias de remarketing','Campanhas para serviços específicos','Reuniões estratégicas mensais','Dashboard de acompanhamento'], destaque: true },
-            { nome: 'Elite', valor: 'Consultar', periodo: '', tagline: 'Escala, dados e referência no nicho.', paraQuem: 'Negócios consolidados que querem dominar o mercado e transformar tráfego em vantagem competitiva.', itens: ['Gestão 360º (Meta + Google + LinkedIn + TikTok)','Estratégia de funil completo','Otimização contínua de landing pages','Análise competitiva aprofundada','Consultoria trimestral de vendas','Atendimento preferencial'], destaque: false },
-          ].map((plano) => (
-            <div key={plano.nome} style={{
-              background: 'var(--bg-card)',
-              border: plano.destaque ? '2px solid var(--accent)' : '1px solid var(--line)',
-              borderRadius: '8px', padding: '32px', position: 'relative',
+      {/* ===== LANDING PAGES ===== */}
+      <section id="landing-pages" style={{ padding: 'clamp(60px, 10vw, 100px) 24px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '64px', alignItems: 'center' }}>
+          <div>
+            <div className="brand-caps" style={{ marginBottom: '16px', color: 'var(--accent)' }}>* Além dos anúncios</div>
+            <h2 className="font-serif" style={{
+              fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
+              letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '24px',
             }}>
-              {plano.destaque && (
-                <span style={{
-                  position: 'absolute', top: '-12px', right: '24px',
-                  background: 'var(--accent)', color: 'var(--bg)',
-                  fontSize: '10px', fontWeight: 600, letterSpacing: '0.14em',
-                  textTransform: 'uppercase', padding: '4px 10px', borderRadius: '3px',
-                }}>Mais escolhido</span>
-              )}
-              <h3 className="font-serif" style={{ fontSize: '28px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '8px' }}>
-                {plano.nome}
-              </h3>
-              <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginBottom: '20px', lineHeight: 1.5 }}>{plano.tagline}</p>
-              <div style={{ marginBottom: '20px' }}>
-                <span className="font-serif" style={{ fontSize: '40px', fontWeight: 600, letterSpacing: '-0.02em' }}>{plano.valor}</span>
-                {plano.periodo && <span style={{ fontSize: '14px', color: 'var(--ink-muted)', marginLeft: '6px' }}>{plano.periodo}</span>}
+              Também criamos <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>landing pages</em> que convertem.
+            </h2>
+            <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)', lineHeight: 1.65, marginBottom: '20px' }}>
+              De nada adianta o melhor anúncio se a página de destino não convence. Criamos landing pages focadas em conversão — rápidas, diretas e alinhadas com a campanha — para que cada clique vire uma oportunidade real.
+            </p>
+            <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)', lineHeight: 1.65, marginBottom: '32px' }}>
+              Diagnóstico de copy, estrutura de oferta, prova social e CTA — tudo pensado para o seu público específico.
+            </p>
+            <a href={WHATSAPP_URL} target="_blank" style={{
+              display: 'inline-block', padding: '14px 28px', borderRadius: '4px',
+              background: 'var(--ink)', color: 'var(--bg)', fontWeight: 500, fontSize: '14px',
+            }}>
+              Quero uma landing page →
+            </a>
+          </div>
+
+          <div style={{ display: 'grid', gap: '16px' }}>
+            {[
+              { titulo: 'Página de captura', desc: 'Para campanhas de geração de leads. Formulário simples, proposta clara, sem distração.' },
+              { titulo: 'Página de serviço', desc: 'Apresenta um serviço específico com profundidade — ideal para tráfego qualificado de Google.' },
+              { titulo: 'Página de oferta', desc: 'Promoção, pacote ou condição especial com urgência e prova social para acelerar a decisão.' },
+              { titulo: 'Página de agendamento', desc: 'Integrada com agenda online — o lead marca a consulta direto, sem fricção.' },
+            ].map((item) => (
+              <div key={item.titulo} style={{
+                background: 'var(--bg-card)', border: '1px solid var(--line)',
+                borderRadius: '6px', padding: '20px 24px',
+                display: 'flex', gap: '16px', alignItems: 'flex-start',
+              }}>
+                <div style={{
+                  flexShrink: 0, marginTop: '2px',
+                  width: '20px', height: '20px', borderRadius: '50%',
+                  background: 'var(--accent-soft)', border: '1px solid var(--accent)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700, lineHeight: 1 }}>✓</span>
+                </div>
+                <div>
+                  <div className="font-serif" style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>{item.titulo}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.55 }}>{item.desc}</div>
+                </div>
               </div>
-              <p style={{
-                fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.55,
-                marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--line-soft)',
-              }}>
-                <strong style={{ color: 'var(--ink)' }}>Pra quem é:</strong> {plano.paraQuem}
-              </p>
-              <ul style={{ listStyle: 'none', padding: 0, marginBottom: '28px', display: 'grid', gap: '10px' }}>
-                {plano.itens.map((item, i) => (
-                  <li key={i} style={{ fontSize: '13px', color: 'var(--ink-soft)', paddingLeft: '20px', position: 'relative', lineHeight: 1.5 }}>
-                    <span style={{ position: 'absolute', left: 0, color: 'var(--green)', fontWeight: 600 }}>✓</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <a href={WHATSAPP_URL} target="_blank" style={{
-                display: 'block', textAlign: 'center', padding: '12px 20px', borderRadius: '4px',
-                background: plano.destaque ? 'var(--accent)' : 'var(--ink)',
-                color: 'var(--bg)', fontWeight: 500, fontSize: '14px',
-              }}>
-                {plano.valor === 'Consultar' ? 'Conversar sobre' : 'Contratar plano'} →
-              </a>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
