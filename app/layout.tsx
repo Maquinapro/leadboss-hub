@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Leadboss Hub',
-  description: 'Sistema de gestão Leadboss Ads',
+  title: 'Leadboss Ads',
+  description: 'Tráfego pago para negócios locais — Meta, Google, LinkedIn e TikTok.',
 }
 
 export default function RootLayout({
