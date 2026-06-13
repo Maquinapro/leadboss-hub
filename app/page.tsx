@@ -501,6 +501,8 @@ export default function HomePage() {
           border-radius: 50%;
           overflow: hidden;
           aspect-ratio: 1;
+          width: 80%;
+          margin: 0 auto;
         }
         @media (max-width: 900px) {
           .nav-desktop { display: none !important; }
