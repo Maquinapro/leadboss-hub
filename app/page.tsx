@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import GlobeCanvas from '@/components/GlobeCanvas'
 
 const WHATSAPP_URL = 'https://wa.me/5511917139765?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20saber%20mais!'
 
@@ -110,15 +109,23 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Coluna direita: globo */}
+            {/* Coluna direita: vídeo globo */}
             <div className="hero-globe">
-              <div style={{
-                borderRadius: '50%',
-                boxShadow: '0 12px 48px rgba(26, 26, 26, 0.13)',
-                display: 'inline-block',
-              }}>
-                <GlobeCanvas size={440} />
-              </div>
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  mixBlendMode: 'multiply',
+                }}
+              >
+                <source src="/globe-preview.mp4" type="video/mp4" />
+              </video>
             </div>
 
           </div>
