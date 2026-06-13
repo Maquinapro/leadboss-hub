@@ -119,8 +119,10 @@ export default function HomePage() {
                 preload="auto"
                 style={{
                   width: '100%',
-                  height: 'auto',
+                  height: '100%',
+                  objectFit: 'cover',
                   display: 'block',
+                  transform: 'scale(1.35)',
                   mixBlendMode: 'multiply',
                 }}
               >
@@ -496,9 +498,9 @@ export default function HomePage() {
           align-items: center;
         }
         .hero-globe {
-          display: flex;
-          justify-content: center;
-          align-items: center;
+          border-radius: 50%;
+          overflow: hidden;
+          aspect-ratio: 1;
         }
         @media (max-width: 900px) {
           .nav-desktop { display: none !important; }
