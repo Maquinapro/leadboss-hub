@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import GlobeCanvas from '@/components/GlobeCanvas'
 
 const WHATSAPP_URL = 'https://wa.me/5511917139765?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20saber%20mais!'
 
@@ -55,66 +56,71 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* ===== HERO CENTRALIZADO ===== */}
-      <section style={{
-        padding: 'clamp(60px, 10vw, 120px) 24px clamp(60px, 8vw, 100px)',
-        maxWidth: '1200px', margin: '0 auto',
-        textAlign: 'center',
-      }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <div className="brand-caps" style={{ marginBottom: '24px', color: 'var(--accent)' }}>
-            * Tráfego pago para negócios locais
-          </div>
-          <h1 className="font-serif" style={{
-            fontSize: 'clamp(38px, 7vw, 84px)', fontWeight: 600,
-            letterSpacing: '-0.03em', lineHeight: 1.02, marginBottom: '28px',
-          }}>
-            Mais visibilidade, <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>mais clientes.</em>
-          </h1>
-          <p style={{
-            fontSize: 'clamp(16px, 2.4vw, 22px)', color: 'var(--ink-soft)',
-            lineHeight: 1.5, marginBottom: '40px',
-            maxWidth: '700px', margin: '0 auto 40px',
-          }}>
-            Estratégia, gestão e resultado em <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>Meta, Google, LinkedIn e TikTok.</strong> Atraímos clientes qualificados pro seu negócio crescer mês a mês.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <a href={WHATSAPP_URL} target="_blank" style={{
-              background: 'var(--ink)', color: 'var(--bg)',
-              padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
-              fontSize: '15px',
-            }}>
-              Fale com um especialista →
-            </a>
-            <a href="#como-funciona" style={{
-              padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
-              fontSize: '15px', border: '1px solid var(--line)', color: 'var(--ink-soft)',
-            }}>
-              Como funciona
-            </a>
-          </div>
+      {/* ===== HERO ===== */}
+      <section style={{ padding: 'clamp(60px, 10vw, 120px) 24px clamp(60px, 8vw, 100px)' }}>
+        <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+          <div className="hero-grid">
 
-          <div style={{
-            marginTop: '80px', paddingTop: '40px',
-            borderTop: '1px solid var(--line)',
-            maxWidth: '700px', margin: '80px auto 0',
-          }}>
-            <div className="brand-caps" style={{ marginBottom: '20px', paddingTop: '40px' }}>
-              * Plataformas que trabalhamos
-            </div>
-            <div style={{
-              display: 'flex', gap: 'clamp(20px, 4vw, 48px)',
-              flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {['Meta', 'Google', 'LinkedIn', 'TikTok'].map((p) => (
-                <span key={p} className="font-serif" style={{
-                  fontSize: 'clamp(18px, 3vw, 28px)', fontWeight: 600, letterSpacing: '-0.01em',
-                  color: 'var(--ink-soft)',
+            {/* Coluna esquerda: texto */}
+            <div>
+              <div className="brand-caps" style={{ marginBottom: '24px', color: 'var(--accent)' }}>
+                * Tráfego pago para negócios locais
+              </div>
+              <h1 className="font-serif" style={{
+                fontSize: 'clamp(38px, 5.5vw, 74px)', fontWeight: 600,
+                letterSpacing: '-0.03em', lineHeight: 1.02, marginBottom: '28px',
+              }}>
+                Mais visibilidade, <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>mais clientes.</em>
+              </h1>
+              <p style={{
+                fontSize: 'clamp(16px, 2vw, 20px)', color: 'var(--ink-soft)',
+                lineHeight: 1.55, marginBottom: '40px', maxWidth: '520px',
+              }}>
+                Estratégia, gestão e resultado em <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>Meta, Google, LinkedIn e TikTok.</strong> Atraímos clientes qualificados pro seu negócio crescer mês a mês.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <a href={WHATSAPP_URL} target="_blank" style={{
+                  background: 'var(--ink)', color: 'var(--bg)',
+                  padding: '16px 32px', borderRadius: '4px', fontWeight: 500, fontSize: '15px',
                 }}>
-                  {p}
-                </span>
-              ))}
+                  Fale com um especialista →
+                </a>
+                <a href="#como-funciona" style={{
+                  padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
+                  fontSize: '15px', border: '1px solid var(--line)', color: 'var(--ink-soft)',
+                }}>
+                  Como funciona
+                </a>
+              </div>
+
+              <div style={{ marginTop: '64px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
+                <div className="brand-caps" style={{ marginBottom: '16px' }}>
+                  * Plataformas que trabalhamos
+                </div>
+                <div style={{ display: 'flex', gap: 'clamp(20px, 3vw, 40px)', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {['Meta', 'Google', 'LinkedIn', 'TikTok'].map((p) => (
+                    <span key={p} className="font-serif" style={{
+                      fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 600,
+                      letterSpacing: '-0.01em', color: 'var(--ink-soft)',
+                    }}>
+                      {p}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
+
+            {/* Coluna direita: globo */}
+            <div className="hero-globe">
+              <div style={{
+                borderRadius: '50%',
+                boxShadow: '0 12px 48px rgba(26, 26, 26, 0.13)',
+                display: 'inline-block',
+              }}>
+                <GlobeCanvas size={440} />
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
@@ -476,9 +482,22 @@ export default function HomePage() {
       <style dangerouslySetInnerHTML={{ __html: `
         .nav-desktop { display: flex; gap: 28px; }
         .nav-mobile-cta { display: none; }
-        @media (max-width: 820px) {
+        .hero-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 48px;
+          align-items: center;
+        }
+        .hero-globe {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        @media (max-width: 900px) {
           .nav-desktop { display: none !important; }
           .nav-mobile-cta { display: inline-block !important; }
+          .hero-grid { grid-template-columns: 1fr; }
+          .hero-globe { display: none; }
         }
       `}} />
     </main>
