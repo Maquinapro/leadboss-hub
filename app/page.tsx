@@ -100,7 +100,7 @@ export default function HomePage() {
                 loop
                 muted
                 playsInline
-                preload="auto"
+                preload="metadata"
                 style={{
                   width: '100%',
                   height: '100%',
