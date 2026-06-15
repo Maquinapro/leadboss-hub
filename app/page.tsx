@@ -49,7 +49,7 @@ export default function HomePage() {
 
           <a href={WHATSAPP_URL} target="_blank" className="nav-mobile-cta btn-primary" style={{
             background: 'var(--ink)', color: 'var(--bg)',
-            padding: '9px 18px', borderRadius: '4px', fontWeight: 500, fontSize: '13px',
+            padding: '12px 20px', borderRadius: '4px', fontWeight: 500, fontSize: '13px',
             display: 'none',
           }}>
             Falar →
@@ -478,7 +478,7 @@ export default function HomePage() {
 
             <div>
               <div className="brand-caps" style={{ marginBottom: '12px' }}>Endereço</div>
-              <div style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
+              <div className="foot-links" style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
                 Alameda Rio Negro, 503<br />
                 Sala 2020 · Alphaville Centro Industrial e Empresarial<br />
                 Alphaville · Barueri/SP<br />
@@ -488,7 +488,7 @@ export default function HomePage() {
 
             <div>
               <div className="brand-caps" style={{ marginBottom: '12px' }}>Contato</div>
-              <div style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
+              <div className="foot-links" style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
                 <a href="tel:11917139765">(11) 9 1713-9765</a><br />
                 <a href={WHATSAPP_URL} target="_blank">WhatsApp direto</a>
               </div>
@@ -496,7 +496,7 @@ export default function HomePage() {
 
             <div>
               <div className="brand-caps" style={{ marginBottom: '12px' }}>Redes</div>
-              <div style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
+              <div className="foot-links" style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
                 <a href="https://www.instagram.com/leadboss.ads" target="_blank">Instagram @leadboss.ads</a><br />
                 <a href="https://www.youtube.com/@leadboss_ads" target="_blank">YouTube @leadboss_ads</a>
               </div>
@@ -622,6 +622,14 @@ export default function HomePage() {
         /* ---- Plataformas no hero ---- */
         .platform-logo { transition: opacity 0.18s ease; }
         .platform-logo:hover { opacity: 0.5; }
+
+        /* ---- Rodapé: alvos de toque acessíveis (WCAG) ---- */
+        .foot-links a {
+          display: inline-block;
+          padding: 7px 0;
+          transition: color 0.18s ease;
+        }
+        .foot-links a:hover { color: var(--accent); }
 
         /* ---- Respeito por reduced motion ---- */
         @media (prefers-reduced-motion: reduce) {
