@@ -5,6 +5,34 @@ import FlowDiagram from '@/components/FlowDiagram'
 
 const WHATSAPP_URL = 'https://wa.me/5511917139765?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20saber%20mais!'
 
+// Perguntas frequentes — conteúdo extraível pela IA do Google (FAQPage schema)
+const FAQS: { q: string; a: string }[] = [
+  {
+    q: 'Quanto preciso investir em tráfego pago para começar?',
+    a: 'Não trabalhamos com um valor fixo: o investimento ideal depende do seu mercado, da sua região e da sua meta. No diagnóstico inicial indicamos uma faixa realista para o seu caso — com verba suficiente para gerar dados e otimizar as campanhas com consistência.',
+  },
+  {
+    q: 'Em quanto tempo vejo resultados com os anúncios?',
+    a: 'As primeiras campanhas começam a rodar em poucos dias. A geração de leads costuma aparecer já nas primeiras semanas, e a performance ganha consistência conforme otimizamos os anúncios com base nos dados reais do seu público.',
+  },
+  {
+    q: 'A Leadboss Ads atende negócios de qualquer cidade?',
+    a: 'Sim. Atendemos negócios locais em todo o Brasil. Nossa sede fica em Alphaville (Barueri/SP), mas as campanhas são geridas remotamente e segmentadas exatamente para a região onde estão os seus clientes.',
+  },
+  {
+    q: 'Qual a diferença entre anunciar no Google e no Meta (Instagram e Facebook)?',
+    a: 'No Google você alcança quem já está buscando ativamente pelo seu serviço — alta intenção de compra. No Meta você gera demanda e constrói marca para quem ainda não procurava. A estratégia certa quase sempre combina os dois canais.',
+  },
+  {
+    q: 'Vocês cuidam de tudo ou eu preciso acompanhar as campanhas?',
+    a: 'Cuidamos de toda a parte técnica: estratégia, criação, configuração, otimização diária e relatórios. Você acompanha tudo com clareza, sem precisar entender de plataforma de anúncios.',
+  },
+  {
+    q: 'A Leadboss também cria a landing page da campanha?',
+    a: 'Sim. Além de gerir o tráfego, criamos landing pages focadas em conversão — de captura, de serviço, de oferta ou de agendamento — alinhadas com a campanha, para que cada clique tenha a melhor chance de virar cliente.',
+  },
+]
+
 export default function HomePage() {
   return (
     <main style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
@@ -425,6 +453,54 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ===== FAQ ===== */}
+      <section id="faq" style={{ padding: 'clamp(60px, 10vw, 100px) 24px', borderTop: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: '820px', margin: '0 auto' }}>
+          <div data-reveal style={{ textAlign: 'center', marginBottom: '56px' }}>
+            <div className="brand-caps" style={{ marginBottom: '12px', color: 'var(--accent)' }}>* Perguntas frequentes</div>
+            <h2 className="font-serif" style={{
+              fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
+              letterSpacing: '-0.02em', lineHeight: 1.12,
+            }}>
+              As dúvidas que mais <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>ouvimos.</em>
+            </h2>
+          </div>
+
+          <div data-reveal-stagger>
+            {FAQS.map((item, i) => (
+              <div key={i} style={{
+                padding: '28px 0',
+                borderTop: i === 0 ? 'none' : '1px solid var(--line-soft)',
+              }}>
+                <h3 className="font-serif" style={{
+                  fontSize: 'clamp(18px, 2.4vw, 22px)', fontWeight: 600,
+                  letterSpacing: '-0.01em', lineHeight: 1.3, marginBottom: '12px', color: 'var(--ink)',
+                }}>
+                  {item.q}
+                </h3>
+                <p style={{ fontSize: 'clamp(15px, 2vw, 16px)', color: 'var(--ink-soft)', lineHeight: 1.65 }}>
+                  {item.a}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ structured data (FAQPage) — formato que a IA do Google extrai */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: FAQS.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        }) }}
+      />
 
       {/* ===== SOBRE ===== */}
       <section style={{

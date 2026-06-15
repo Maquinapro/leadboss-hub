@@ -14,8 +14,86 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Leadboss Ads',
-  description: 'Tráfego pago para negócios locais — Meta, Google, LinkedIn e TikTok.',
+  metadataBase: new URL('https://www.leadboss.com.br'),
+  title: {
+    default: 'Leadboss Ads — Tráfego pago para negócios locais',
+    template: '%s · Leadboss Ads',
+  },
+  description:
+    'Agência de tráfego pago focada em faturamento. Gestão de anúncios em Meta, Google, LinkedIn e TikTok + landing pages que convertem, para negócios locais em todo o Brasil.',
+  keywords: [
+    'tráfego pago',
+    'agência de tráfego pago',
+    'gestão de anúncios',
+    'Google Ads',
+    'Meta Ads',
+    'geração de leads',
+    'marketing para negócios locais',
+    'landing pages que convertem',
+  ],
+  authors: [{ name: 'Leadboss Ads' }],
+  creator: 'Leadboss Ads',
+  alternates: { canonical: 'https://www.leadboss.com.br' },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    url: 'https://www.leadboss.com.br',
+    siteName: 'Leadboss Ads',
+    title: 'Leadboss Ads — Tráfego pago para negócios locais',
+    description:
+      'Gestão de tráfego em Meta, Google, LinkedIn e TikTok + landing pages que convertem. Marketing de performance focado no seu faturamento.',
+    images: [{ url: '/leadboss-logo.png', alt: 'Leadboss Ads' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Leadboss Ads — Tráfego pago para negócios locais',
+    description:
+      'Marketing de performance focado em faturamento. Meta, Google, LinkedIn, TikTok e landing pages que convertem.',
+    images: ['/leadboss-logo.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+  },
+}
+
+// Dados estruturados: a IA do Google e os buscadores leem isto para entender o negócio
+const businessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  '@id': 'https://www.leadboss.com.br/#business',
+  name: 'Leadboss Ads',
+  description:
+    'Agência de tráfego pago para negócios locais. Gestão de anúncios em Meta, Google, LinkedIn e TikTok e criação de landing pages, com foco em faturamento.',
+  url: 'https://www.leadboss.com.br',
+  logo: 'https://www.leadboss.com.br/leadboss-logo.png',
+  image: 'https://www.leadboss.com.br/leadboss-logo.png',
+  telephone: '+55-11-91713-9765',
+  priceRange: '$$',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Alameda Rio Negro, 503, Sala 2020 — Alphaville Centro Industrial e Empresarial',
+    addressLocality: 'Barueri',
+    addressRegion: 'SP',
+    postalCode: '06454-000',
+    addressCountry: 'BR',
+  },
+  areaServed: { '@type': 'Country', name: 'Brasil' },
+  sameAs: [
+    'https://www.instagram.com/leadboss.ads',
+    'https://www.youtube.com/@leadboss_ads',
+  ],
+  knowsAbout: [
+    'Tráfego pago',
+    'Google Ads',
+    'Meta Ads',
+    'LinkedIn Ads',
+    'TikTok Ads',
+    'Geração de leads',
+    'Landing pages',
+    'Marketing de performance',
+  ],
 }
 
 export default function RootLayout({
@@ -26,6 +104,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
+        {/* Dados estruturados do negócio (Schema.org) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+        />
+
         {/* Google Tag Manager */}
         <Script
           id="gtm-script"
