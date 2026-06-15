@@ -29,6 +29,7 @@ body {
   color: var(--ink);
   font-family: 'Inter Tight', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
 }
 
 body {
