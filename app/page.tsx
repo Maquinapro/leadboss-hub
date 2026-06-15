@@ -67,6 +67,7 @@ export default function HomePage() {
             <a href="#para-quem" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Para quem</a>
             <a href="#como-funciona" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Como funciona</a>
             <a href="#landing-pages" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Landing Pages</a>
+            <Link href="/blog" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Blog</Link>
             <a href={WHATSAPP_URL} target="_blank" className="btn-primary" style={{
               background: 'var(--ink)', color: 'var(--bg)',
               padding: '8px 18px', borderRadius: '4px', fontWeight: 500, whiteSpace: 'nowrap',
