@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import MicroInteractions from '@/components/MicroInteractions'
+import FlowDiagram from '@/components/FlowDiagram'
 
 const WHATSAPP_URL = 'https://wa.me/5511917139765?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20saber%20mais!'
 
@@ -136,6 +137,29 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== FLUXO: canais → clientes ===== */}
+      <section style={{ padding: 'clamp(64px, 10vw, 120px) 24px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div data-reveal style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 56px' }}>
+            <div className="brand-caps" style={{ marginBottom: '16px', color: 'var(--accent)' }}>
+              * O que fazemos
+            </div>
+            <h2 className="font-serif" style={{
+              fontSize: 'clamp(26px, 4.5vw, 46px)', fontWeight: 600,
+              letterSpacing: '-0.02em', lineHeight: 1.12, marginBottom: '20px',
+            }}>
+              De cada canal, <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>um caminho até o seu cliente.</em>
+            </h2>
+            <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+              Captamos atenção onde o seu público está — e conduzimos cada clique até virar uma oportunidade real de negócio.
+            </p>
+          </div>
+          <div data-reveal>
+            <FlowDiagram />
+          </div>
+        </div>
+      </section>
+
       {/* ===== CENÁRIO HOJE ===== */}
       <section style={{
         padding: 'clamp(60px, 10vw, 100px) 24px',
@@ -150,7 +174,7 @@ export default function HomePage() {
             </div>
             <h2 className="font-serif" style={{
               fontSize: 'clamp(26px, 4.5vw, 48px)', fontWeight: 600,
-              letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '20px',
+              letterSpacing: '-0.02em', lineHeight: 1.1,
               maxWidth: '780px', margin: '0 auto 20px',
             }}>
               Talvez você esteja <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>passando por isso…</em>
