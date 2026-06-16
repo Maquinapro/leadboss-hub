@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { WHATSAPP_URL } from '@/lib/site'
+import WhatsAppCTA from '@/components/WhatsAppCTA'
 
 export default function SiteFooter() {
   return (
@@ -38,7 +38,7 @@ export default function SiteFooter() {
             <div className="brand-caps" style={{ marginBottom: '12px' }}>Contato</div>
             <div className="foot-links" style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
               <a href="tel:11917139765">(11) 9 1713-9765</a><br />
-              <a href={WHATSAPP_URL} target="_blank">WhatsApp direto</a>
+              <WhatsAppCTA>WhatsApp direto</WhatsAppCTA>
             </div>
           </div>
 

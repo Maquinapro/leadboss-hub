@@ -2,8 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import MicroInteractions from '@/components/MicroInteractions'
 import FlowDiagram from '@/components/FlowDiagram'
-
-const WHATSAPP_URL = 'https://wa.me/5511917139765?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20saber%20mais!'
+import WhatsAppCTA from '@/components/WhatsAppCTA'
 
 // Perguntas frequentes — conteúdo extraível pela IA do Google (FAQPage schema)
 const FAQS: { q: string; a: string }[] = [
@@ -68,21 +67,21 @@ export default function HomePage() {
             <a href="#como-funciona" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Como funciona</a>
             <a href="#landing-pages" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Landing Pages</a>
             <Link href="/blog" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Blog</Link>
-            <a href={WHATSAPP_URL} target="_blank" className="btn-primary" style={{
+            <WhatsAppCTA className="btn-primary" style={{
               background: 'var(--ink)', color: 'var(--bg)',
               padding: '8px 18px', borderRadius: '4px', fontWeight: 500, whiteSpace: 'nowrap',
             }}>
               Falar com especialista
-            </a>
+            </WhatsAppCTA>
           </div>
 
-          <a href={WHATSAPP_URL} target="_blank" className="nav-mobile-cta btn-primary" style={{
+          <WhatsAppCTA className="nav-mobile-cta btn-primary" style={{
             background: 'var(--ink)', color: 'var(--bg)',
             padding: '12px 20px', borderRadius: '4px', fontWeight: 500, fontSize: '13px',
             display: 'none',
           }}>
             Falar →
-          </a>
+          </WhatsAppCTA>
         </div>
       </nav>
 
@@ -109,12 +108,12 @@ export default function HomePage() {
                 Estratégia, gestão e resultado em <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>Meta, Google, LinkedIn e TikTok.</strong> Atraímos clientes qualificados pro seu negócio crescer mês a mês.
               </p>
               <div className="hero-cta" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <a href={WHATSAPP_URL} target="_blank" className="btn-primary" style={{
+                <WhatsAppCTA className="btn-primary" style={{
                   background: 'var(--ink)', color: 'var(--bg)',
                   padding: '16px 32px', borderRadius: '4px', fontWeight: 500, fontSize: '15px',
                 }}>
                   Fale com um especialista →
-                </a>
+                </WhatsAppCTA>
                 <a href="#como-funciona" className="btn-secondary" style={{
                   padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
                   fontSize: '15px', border: '1px solid var(--line)', color: 'var(--ink-soft)',
@@ -352,13 +351,13 @@ export default function HomePage() {
           }}>
             Atendemos negócios de <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>qualquer setor.</em> Seja o seu o que for, podemos ajudar a crescer.
           </p>
-          <a href={WHATSAPP_URL} target="_blank" className="btn-secondary" style={{
+          <WhatsAppCTA className="btn-secondary" style={{
             display: 'inline-block', padding: '14px 28px', borderRadius: '4px',
             background: 'transparent', color: 'var(--ink)', fontWeight: 500,
             fontSize: '14px', border: '1.5px solid var(--ink)',
           }}>
             Conversar sobre meu negócio →
-          </a>
+          </WhatsAppCTA>
         </div>
       </section>
 
@@ -417,12 +416,12 @@ export default function HomePage() {
             <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)', lineHeight: 1.65, marginBottom: '32px' }}>
               Diagnóstico de copy, estrutura de oferta, prova social e CTA, tudo pensado para o seu público específico.
             </p>
-            <a href={WHATSAPP_URL} target="_blank" className="btn-primary" style={{
+            <WhatsAppCTA className="btn-primary" style={{
               display: 'inline-block', padding: '14px 28px', borderRadius: '4px',
               background: 'var(--ink)', color: 'var(--bg)', fontWeight: 500, fontSize: '14px',
             }}>
               Quero uma landing page →
-            </a>
+            </WhatsAppCTA>
           </div>
 
           <div data-reveal-stagger style={{ display: 'grid', gap: '16px' }}>
@@ -522,10 +521,10 @@ export default function HomePage() {
             <p>Com gestão de tráfego em Meta, Google, LinkedIn e TikTok, criamos campanhas sob medida pra cada momento do seu negócio. E você acompanha tudo, sempre, em relatórios claros.</p>
           </div>
           <div style={{ marginTop: '36px' }}>
-            <a href={WHATSAPP_URL} target="_blank" className="btn-primary" style={{
+            <WhatsAppCTA className="btn-primary" style={{
               display: 'inline-block', padding: '14px 32px', borderRadius: '4px',
               background: 'var(--ink)', color: 'var(--bg)', fontWeight: 500, fontSize: '15px',
-            }}>Fale com a gente →</a>
+            }}>Fale com a gente →</WhatsAppCTA>
           </div>
         </div>
       </section>
@@ -567,7 +566,7 @@ export default function HomePage() {
               <div className="brand-caps" style={{ marginBottom: '12px' }}>Contato</div>
               <div className="foot-links" style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.7 }}>
                 <a href="tel:11917139765">(11) 9 1713-9765</a><br />
-                <a href={WHATSAPP_URL} target="_blank">WhatsApp direto</a>
+                <WhatsAppCTA>WhatsApp direto</WhatsAppCTA>
               </div>
             </div>
 

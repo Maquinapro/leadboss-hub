@@ -5,8 +5,9 @@ import type { ReactNode } from 'react'
 import SiteNav from '@/components/SiteNav'
 import SiteFooter from '@/components/SiteFooter'
 import MicroInteractions from '@/components/MicroInteractions'
+import WhatsAppCTA from '@/components/WhatsAppCTA'
 import { getPostBySlug, getAllSlugs, getAllPosts, formatDate, type Block } from '@/lib/posts'
-import { SITE_URL, WHATSAPP_URL } from '@/lib/site'
+import { SITE_URL } from '@/lib/site'
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }))
@@ -137,12 +138,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             <p style={{ fontSize: '15px', color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: '24px', maxWidth: '460px', margin: '0 auto 24px' }}>
               Fazemos um diagnóstico do seu cenário e mostramos onde estão as oportunidades — sem compromisso.
             </p>
-            <a href={WHATSAPP_URL} target="_blank" className="btn-primary" style={{
+            <WhatsAppCTA className="btn-primary" style={{
               display: 'inline-block', padding: '14px 30px', borderRadius: '4px',
               background: 'var(--ink)', color: 'var(--bg)', fontWeight: 500, fontSize: '15px',
             }}>
               Falar com um especialista →
-            </a>
+            </WhatsAppCTA>
           </div>
 
           {/* Outros artigos */}

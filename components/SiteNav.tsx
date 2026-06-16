@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { WHATSAPP_URL } from '@/lib/site'
+import WhatsAppCTA from '@/components/WhatsAppCTA'
 
 // Nav reutilizável. No blog os itens de navegação levam de volta à home (#âncoras).
 export default function SiteNav() {
@@ -35,21 +35,21 @@ export default function SiteNav() {
           <Link href="/#para-quem" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Para quem</Link>
           <Link href="/#como-funciona" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Como funciona</Link>
           <Link href="/blog" className="nav-link" style={{ color: 'var(--ink-soft)' }}>Blog</Link>
-          <a href={WHATSAPP_URL} target="_blank" className="btn-primary" style={{
+          <WhatsAppCTA className="btn-primary" style={{
             background: 'var(--ink)', color: 'var(--bg)',
             padding: '8px 18px', borderRadius: '4px', fontWeight: 500, whiteSpace: 'nowrap',
           }}>
             Falar com especialista
-          </a>
+          </WhatsAppCTA>
         </div>
 
-        <a href={WHATSAPP_URL} target="_blank" className="nav-mobile-cta btn-primary" style={{
+        <WhatsAppCTA className="nav-mobile-cta btn-primary" style={{
           background: 'var(--ink)', color: 'var(--bg)',
           padding: '12px 20px', borderRadius: '4px', fontWeight: 500, fontSize: '13px',
           display: 'none',
         }}>
           Falar →
-        </a>
+        </WhatsAppCTA>
       </div>
     </nav>
   )
