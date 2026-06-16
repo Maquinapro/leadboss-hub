@@ -9,7 +9,7 @@ const WHATSAPP_URL = 'https://wa.me/5511917139765?text=Ol%C3%A1%2C%20vim%20pelo%
 const FAQS: { q: string; a: string }[] = [
   {
     q: 'Quanto preciso investir em tráfego pago para começar?',
-    a: 'Não trabalhamos com um valor fixo: o investimento ideal depende do seu mercado, da sua região e da sua meta. No diagnóstico inicial indicamos uma faixa realista para o seu caso — com verba suficiente para gerar dados e otimizar as campanhas com consistência.',
+    a: 'Não trabalhamos com um valor fixo: o investimento ideal depende do seu mercado, da sua região e da sua meta. No diagnóstico inicial indicamos uma faixa realista para o seu caso, com verba suficiente para gerar dados e otimizar as campanhas com consistência.',
   },
   {
     q: 'Em quanto tempo vejo resultados com os anúncios?',
@@ -21,7 +21,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Qual a diferença entre anunciar no Google e no Meta (Instagram e Facebook)?',
-    a: 'No Google você alcança quem já está buscando ativamente pelo seu serviço — alta intenção de compra. No Meta você gera demanda e constrói marca para quem ainda não procurava. A estratégia certa quase sempre combina os dois canais.',
+    a: 'No Google você alcança quem já está buscando ativamente pelo seu serviço, com alta intenção de compra. No Meta você gera demanda e constrói marca para quem ainda não procurava. A estratégia certa quase sempre combina os dois canais.',
   },
   {
     q: 'Vocês cuidam de tudo ou eu preciso acompanhar as campanhas?',
@@ -29,7 +29,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'A Leadboss também cria a landing page da campanha?',
-    a: 'Sim. Além de gerir o tráfego, criamos landing pages focadas em conversão — de captura, de serviço, de oferta ou de agendamento — alinhadas com a campanha, para que cada clique tenha a melhor chance de virar cliente.',
+    a: 'Sim. Além de gerir o tráfego, criamos landing pages focadas em conversão: captura, serviço, oferta ou agendamento, alinhadas com a campanha para que cada clique tenha a melhor chance de virar cliente.',
   },
 ]
 
@@ -180,7 +180,7 @@ export default function HomePage() {
               De cada canal, <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>um caminho até o seu cliente.</em>
             </h2>
             <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: 'var(--ink-soft)', lineHeight: 1.6 }}>
-              Captamos atenção onde o seu público está — e conduzimos cada clique até virar uma oportunidade real de negócio.
+              Captamos atenção onde o seu público está e conduzimos cada clique até virar uma oportunidade real de negócio.
             </p>
           </div>
           <div data-reveal>
@@ -222,10 +222,10 @@ export default function HomePage() {
             gap: '24px',
           }}>
             {[
-              { numero: '12,15%', titulo: 'Foi quanto o Meta Ads subiu em janeiro/2026 no Brasil.', descricao: 'Seu CAC aumentou da noite pro dia — e o gerenciador não mostra isso.', fonte: 'Meta Business · 2026' },
+              { numero: '12,15%', titulo: 'Foi quanto o Meta Ads subiu em janeiro/2026 no Brasil.', descricao: 'Seu CAC aumentou da noite pro dia. O gerenciador não mostra isso.', fonte: 'Meta Business · 2026' },
               { numero: '1 em 4', titulo: 'empresas NÃO medem se a mídia paga gera lucro.', descricao: 'Você sabe exatamente quanto custou pra trazer cada cliente?', fonte: 'IAB Brasil · Kantar IBOPE' },
               { numero: '1 em 2', titulo: 'pequenas empresas no Brasil ainda não investem em tráfego pago.', descricao: 'Quem está nessa metade que investe, está crescendo.', fonte: 'Sebrae · Pulso dos Pequenos Negócios 2024' },
-              { numero: '76%', titulo: 'das empresas brasileiras já se digitalizaram —', descricao: 'mas só uma pequena parte investe direito em tráfego. A maioria está exposta sem estratégia.', fonte: 'Sebrae · 2024' },
+              { numero: '76%', titulo: 'das empresas brasileiras já se digitalizaram.', descricao: 'Mas só uma pequena parte investe direito em tráfego. A maioria está exposta sem estratégia.', fonte: 'Sebrae · 2024' },
             ].map((stat, i) => (
               <div key={i} className="card-hover" style={{
                 background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '6px',
@@ -265,7 +265,7 @@ export default function HomePage() {
             Só <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>1 em cada 20</em> negócios locais anuncia ativamente no Google.
           </h2>
           <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: 'var(--ink-soft)', lineHeight: 1.6 }}>
-            Enquanto seus concorrentes brigam pelo mesmo público no Instagram, existe um oceano de pessoas buscando ativamente pelo seu serviço — e ninguém aparecendo. Menos concorrência, leads mais qualificados, resultado mais previsível.
+            Enquanto seus concorrentes brigam pelo mesmo público no Instagram, existe um oceano de pessoas buscando ativamente pelo seu serviço sem ninguém aparecendo. Menos concorrência, leads mais qualificados, resultado mais previsível.
           </p>
         </div>
       </section>
@@ -381,9 +381,9 @@ export default function HomePage() {
             display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px',
           }}>
             {[
-              { n: '01', t: 'Estratégia personalizada', d: 'Analisamos seu negócio, público e região para criar campanhas sob medida — focadas em atrair clientes qualificados, não vaidade de números.' },
+              { n: '01', t: 'Estratégia personalizada', d: 'Analisamos seu negócio, público e região para criar campanhas sob medida, focadas em atrair clientes qualificados, não vaidade de números.' },
               { n: '02', t: 'Campanhas em ação', d: 'Configuramos, lançamos e otimizamos seus anúncios diariamente para garantir o melhor custo por cliente.' },
-              { n: '03', t: 'Resultados mensuráveis', d: 'Você acompanha tudo com relatórios claros — sabendo exatamente quantos clientes chegaram pelos anúncios.' },
+              { n: '03', t: 'Resultados mensuráveis', d: 'Você acompanha tudo com relatórios claros, sabendo exatamente quantos clientes chegaram pelos anúncios.' },
             ].map((p) => (
               <div key={p.n} style={{ position: 'relative' }}>
                 <div className="font-serif" style={{
@@ -412,10 +412,10 @@ export default function HomePage() {
               Também criamos <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>landing pages</em> que convertem.
             </h2>
             <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)', lineHeight: 1.65, marginBottom: '20px' }}>
-              De nada adianta o melhor anúncio se a página de destino não convence. Criamos landing pages focadas em conversão — rápidas, diretas e alinhadas com a campanha — para que cada clique vire uma oportunidade real.
+              De nada adianta o melhor anúncio se a página de destino não convence. Criamos landing pages focadas em conversão, rápidas, diretas e alinhadas com a campanha, para que cada clique vire uma oportunidade real.
             </p>
             <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)', lineHeight: 1.65, marginBottom: '32px' }}>
-              Diagnóstico de copy, estrutura de oferta, prova social e CTA — tudo pensado para o seu público específico.
+              Diagnóstico de copy, estrutura de oferta, prova social e CTA, tudo pensado para o seu público específico.
             </p>
             <a href={WHATSAPP_URL} target="_blank" className="btn-primary" style={{
               display: 'inline-block', padding: '14px 28px', borderRadius: '4px',
@@ -428,9 +428,9 @@ export default function HomePage() {
           <div data-reveal-stagger style={{ display: 'grid', gap: '16px' }}>
             {[
               { titulo: 'Página de captura', desc: 'Para campanhas de geração de leads. Formulário simples, proposta clara, sem distração.' },
-              { titulo: 'Página de serviço', desc: 'Apresenta um serviço específico com profundidade — ideal para tráfego qualificado de Google.' },
+              { titulo: 'Página de serviço', desc: 'Apresenta um serviço específico com profundidade, ideal para tráfego qualificado de Google.' },
               { titulo: 'Página de oferta', desc: 'Promoção, pacote ou condição especial com urgência e prova social para acelerar a decisão.' },
-              { titulo: 'Página de agendamento', desc: 'Integrada com agenda online — o lead marca a consulta direto, sem fricção.' },
+              { titulo: 'Página de agendamento', desc: 'Integrada com agenda online. O lead marca a consulta direto, sem fricção.' },
             ].map((item) => (
               <div key={item.titulo} className="card-hover" style={{
                 background: 'var(--bg-card)', border: '1px solid var(--line)',
@@ -518,7 +518,7 @@ export default function HomePage() {
           </h2>
           <div style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)', lineHeight: 1.7, display: 'grid', gap: '16px', textAlign: 'left' }}>
             <p>A Leadboss Ads nasceu pra resolver um problema simples: a maioria das agências mede sucesso em quantidade de leads. Nós medimos em <strong style={{ color: 'var(--ink)' }}>quantos clientes você fechou.</strong></p>
-            <p>Atendemos negócios locais em todo o Brasil — saúde, jurídico, imobiliário, educação, serviços. Cada cliente recebe uma estratégia personalizada, e o nosso KPI principal é sempre o mesmo: o crescimento do seu faturamento.</p>
+            <p>Atendemos negócios locais em todo o Brasil: saúde, jurídico, imobiliário, educação, serviços. Cada cliente recebe uma estratégia personalizada, e o nosso KPI principal é sempre o mesmo: o crescimento do seu faturamento.</p>
             <p>Com gestão de tráfego em Meta, Google, LinkedIn e TikTok, criamos campanhas sob medida pra cada momento do seu negócio. E você acompanha tudo, sempre, em relatórios claros.</p>
           </div>
           <div style={{ marginTop: '36px' }}>
