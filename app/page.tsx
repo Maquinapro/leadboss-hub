@@ -502,6 +502,49 @@ export default function HomePage() {
         }) }}
       />
 
+      {/* ===== DEPOIMENTOS ===== */}
+      <section style={{ padding: 'clamp(60px, 10vw, 100px) 24px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div data-reveal style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <div className="brand-caps" style={{ marginBottom: '12px', color: 'var(--accent)' }}>* O que nossos clientes dizem</div>
+            <h2 className="font-serif" style={{
+              fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 600,
+              letterSpacing: '-0.02em', lineHeight: 1.12,
+            }}>
+              Quem trabalha com a gente, <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>recomenda.</em>
+            </h2>
+          </div>
+
+          <div data-reveal-stagger style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px',
+          }}>
+            {[
+              { nome: 'Igor Sottani', texto: 'Agência excelente com atendimento personalizado e muito focado no crescimento e desenvolvimento do seu negócio. Super indico.' },
+              { nome: 'Luciana da Cunha', texto: 'Depois que conheci o Gustavo, abriu minha mente para detalhes que nunca tinha observado, me ajudou a faturar mais.' },
+              { nome: 'Antonio Ferraço Junior', texto: 'Agência de respeito e compromisso com cliente!' },
+            ].map((d) => (
+              <div key={d.nome} className="card-hover" style={{
+                background: 'var(--bg-card)', border: '1px solid var(--line)',
+                borderRadius: '8px', padding: 'clamp(24px, 4vw, 32px)',
+                display: 'flex', flexDirection: 'column', gap: '16px',
+              }}>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  ))}
+                </div>
+                <p style={{ fontSize: 'clamp(14px, 2vw, 16px)', color: 'var(--ink-soft)', lineHeight: 1.65, flex: 1 }}>
+                  &ldquo;{d.texto}&rdquo;
+                </p>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink)' }}>{d.nome}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ===== SOBRE ===== */}
       <section style={{
         padding: 'clamp(60px, 10vw, 100px) 24px', background: 'var(--bg-card)',
