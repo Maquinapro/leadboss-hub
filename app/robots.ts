@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/sistema/'],
     },
-    sitemap: 'https://www.leadboss.com.br/sitemap.xml',
-    host: 'https://www.leadboss.com.br',
+    sitemap: 'https://leadboss.com.br/sitemap.xml',
+    host: 'https://leadboss.com.br',
   }
 }

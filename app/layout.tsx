@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.leadboss.com.br'),
+  metadataBase: new URL('https://leadboss.com.br'),
   title: {
     default: 'Leadboss Ads — Tráfego pago para negócios locais',
     template: '%s · Leadboss Ads',
@@ -33,11 +33,11 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Leadboss Ads' }],
   creator: 'Leadboss Ads',
-  alternates: { canonical: 'https://www.leadboss.com.br' },
+  alternates: { canonical: 'https://leadboss.com.br' },
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://www.leadboss.com.br',
+    url: 'https://leadboss.com.br',
     siteName: 'Leadboss Ads',
     title: 'Leadboss Ads — Tráfego pago para negócios locais',
     description:
@@ -65,13 +65,13 @@ export const metadata: Metadata = {
 const businessSchema = {
   '@context': 'https://schema.org',
   '@type': 'ProfessionalService',
-  '@id': 'https://www.leadboss.com.br/#business',
+  '@id': 'https://leadboss.com.br/#business',
   name: 'Leadboss Ads',
   description:
     'Agência de tráfego pago para negócios locais. Gestão de anúncios em Meta, Google, LinkedIn e TikTok e criação de landing pages, com foco em faturamento.',
-  url: 'https://www.leadboss.com.br',
-  logo: 'https://www.leadboss.com.br/leadboss-logo.png',
-  image: 'https://www.leadboss.com.br/leadboss-logo.png',
+  url: 'https://leadboss.com.br',
+  logo: 'https://leadboss.com.br/leadboss-logo.png',
+  image: 'https://leadboss.com.br/leadboss-logo.png',
   telephone: '+55-11-91713-9765',
   priceRange: '$$',
   address: {
