@@ -94,6 +94,36 @@ const businessSchema = {
     'Landing pages',
     'Marketing de performance',
   ],
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '5.0',
+    bestRating: '5',
+    ratingCount: '3',
+    reviewCount: '3',
+  },
+  review: [
+    {
+      '@type': 'Review',
+      author: { '@type': 'Person', name: 'Igor Sottani' },
+      datePublished: '2026-06-09',
+      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+      reviewBody: 'Agência excelente com atendimento personalizado e muito focado no crescimento e desenvolvimento do seu negócio. Super indico.',
+    },
+    {
+      '@type': 'Review',
+      author: { '@type': 'Person', name: 'Luciana da Cunha' },
+      datePublished: '2026-06-02',
+      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+      reviewBody: 'Depois que conheci o Gustavo, abriu minha mente para detalhes que nunca tinha observado, me ajudou a faturar mais.',
+    },
+    {
+      '@type': 'Review',
+      author: { '@type': 'Person', name: 'Antonio Ferraço Junior' },
+      datePublished: '2026-05-26',
+      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+      reviewBody: 'Agência de respeito e compromisso com cliente!',
+    },
+  ],
 }
 
 export default function RootLayout({
