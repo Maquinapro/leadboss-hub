@@ -56,6 +56,9 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
+  verification: {
+    google: 'vnLNRAQ2OXCIA9yQiqwSdYsYm4xdPmVYbjBo7DIpRF4',
+  },
 }
 
 // Dados estruturados: a IA do Google e os buscadores leem isto para entender o negócio
