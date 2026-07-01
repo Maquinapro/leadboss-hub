@@ -359,13 +359,14 @@ function RelAPagar() {
 
   async function buscar() {
     setLoading(true)
-    const { data } = await supabase
+    // Mostra tudo pendente cadastrado até o fim do período escolhido
+    const { data, error } = await supabase
       .from('despesas')
       .select('id, mes_inicio, data_vencimento, descricao, categoria, forma_pagamento, valor, status')
       .eq('status', 'pendente')
-      .gte('mes_inicio', inicio)
       .lte('mes_inicio', fim)
       .order('data_vencimento', { ascending: true, nullsFirst: false })
+    console.log('a_pagar result:', data, error)
     setRows(data || [])
     setBuscou(true)
     setLoading(false)
