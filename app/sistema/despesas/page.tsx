@@ -253,7 +253,7 @@ export default function DespesasPage() {
 
       // Despesa: fatia de cada despesa que cai nesse mês
       const despesaMes = todasDespesas.reduce((s, d) => {
-        const inicio = new Date(d.mes_inicio)
+        const inicio = new Date(d.mes_inicio + 'T00:00:00')
         const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
         const atual = new Date(ano, mes, 1)
         if (inicio <= atual && atual <= fim) {
