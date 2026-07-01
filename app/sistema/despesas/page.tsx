@@ -152,6 +152,7 @@ export default function DespesasPage() {
   const [cartaoForm, setCartaoForm] = useState({ nome: '', bandeira: '', ultimos_digitos: '', cor: '#2d6a8f' })
   const [savingCartao, setSavingCartao] = useState(false)
   const [showCartaoForm, setShowCartaoForm] = useState(false)
+  const [editingCartao, setEditingCartao] = useState<Cartao | null>(null)
 
   // ── Conta corrente form
   const [contaForm, setContaForm] = useState({
@@ -160,6 +161,7 @@ export default function DespesasPage() {
   const [savingConta, setSavingConta] = useState(false)
   const [showContaForm, setShowContaForm] = useState(false)
   const [errorConta, setErrorConta] = useState('')
+  const [editingConta, setEditingConta] = useState<ContaCorrente | null>(null)
 
   // ── Load ────────────────────────────────────────────────
 
@@ -312,11 +314,30 @@ export default function DespesasPage() {
   async function handleAddCartao() {
     if (!cartaoForm.nome) return
     setSavingCartao(true)
-    await supabase.from('cartoes').insert({ nome: cartaoForm.nome, bandeira: cartaoForm.bandeira || null, ultimos_digitos: cartaoForm.ultimos_digitos || null, cor: cartaoForm.cor })
+
+    if (editingCartao) {
+      await supabase.from('cartoes').update({
+        nome: cartaoForm.nome, bandeira: cartaoForm.bandeira || null,
+        ultimos_digitos: cartaoForm.ultimos_digitos || null, cor: cartaoForm.cor,
+      }).eq('id', editingCartao.id)
+      setEditingCartao(null)
+    } else {
+      await supabase.from('cartoes').insert({
+        nome: cartaoForm.nome, bandeira: cartaoForm.bandeira || null,
+        ultimos_digitos: cartaoForm.ultimos_digitos || null, cor: cartaoForm.cor,
+      })
+    }
+
     setCartaoForm({ nome: '', bandeira: '', ultimos_digitos: '', cor: '#2d6a8f' })
     setShowCartaoForm(false); setSavingCartao(false)
     const { data } = await supabase.from('cartoes').select('*').eq('ativo', true).order('nome')
     if (data) setCartoes(data)
+  }
+
+  function abrirEdicaoCartao(c: Cartao) {
+    setEditingCartao(c)
+    setCartaoForm({ nome: c.nome, bandeira: c.bandeira || '', ultimos_digitos: c.ultimos_digitos || '', cor: c.cor })
+    setShowCartaoForm(true)
   }
 
   async function handleDesativarCartao(id: string) {
@@ -331,12 +352,16 @@ export default function DespesasPage() {
     setSavingConta(true)
     setErrorConta('')
 
-    const { error: err } = await supabase.from('contas_correntes').insert({
+    const payload = {
       nome: contaForm.nome, banco: contaForm.banco,
       agencia: contaForm.agencia || null, conta: contaForm.conta || null,
       digito: contaForm.digito || null, pix: contaForm.pix || null,
       tipo: contaForm.tipo,
-    })
+    }
+
+    const { error: err } = editingConta
+      ? await supabase.from('contas_correntes').update(payload).eq('id', editingConta.id)
+      : await supabase.from('contas_correntes').insert(payload)
 
     if (err) {
       setErrorConta('Erro ao salvar: ' + err.message)
@@ -345,10 +370,18 @@ export default function DespesasPage() {
     }
 
     setContaForm({ nome: '', banco: '', agencia: '', conta: '', digito: '', pix: '', tipo: 'empresa' })
+    setEditingConta(null)
     setShowContaForm(false)
     setSavingConta(false)
     const { data } = await supabase.from('contas_correntes').select('*').eq('ativo', true).order('nome')
     if (data) setContasCorrentes(data as ContaCorrente[])
+  }
+
+  function abrirEdicaoConta(c: ContaCorrente) {
+    setEditingConta(c)
+    setContaForm({ nome: c.nome, banco: c.banco, agencia: c.agencia || '', conta: c.conta || '', digito: c.digito || '', pix: c.pix || '', tipo: c.tipo })
+    setShowContaForm(true)
+    setErrorConta('')
   }
 
   async function handleDesativarConta(id: string) {
@@ -728,7 +761,7 @@ export default function DespesasPage() {
       {activeSection === 'cartoes' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            <button onClick={() => setShowCartaoForm(!showCartaoForm)} style={{
+            <button onClick={() => { setShowCartaoForm(!showCartaoForm); setEditingCartao(null); setCartaoForm({ nome: '', bandeira: '', ultimos_digitos: '', cor: '#2d6a8f' }) }} style={{
               display: 'inline-flex', alignItems: 'center', gap: '7px',
               padding: '10px 20px', borderRadius: '6px', background: 'var(--ink)', color: 'var(--bg)',
               border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
@@ -752,7 +785,7 @@ export default function DespesasPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={handleAddCartao} disabled={savingCartao || !cartaoForm.nome} style={{ padding: '10px 24px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)', border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', opacity: !cartaoForm.nome ? 0.4 : 1 }}>
-                  {savingCartao ? 'Salvando...' : 'Adicionar cartão'}
+                  {savingCartao ? 'Salvando...' : editingCartao ? 'Salvar alterações' : 'Adicionar cartão'}
                 </button>
               </div>
             </div>
@@ -771,9 +804,14 @@ export default function DespesasPage() {
                     {c.bandeira && <span>{c.bandeira} </span>}
                     {c.ultimos_digitos && <span>···· {c.ultimos_digitos}</span>}
                   </div>
-                  <button onClick={() => handleDesativarCartao(c.id)} style={{ position: 'absolute', top: '12px', right: '12px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M9 6V4h6v2" /></svg>
-                  </button>
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '4px' }}>
+                    <button onClick={() => abrirEdicaoCartao(c)} title="Editar" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                    </button>
+                    <button onClick={() => handleDesativarCartao(c.id)} title="Remover" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M9 6V4h6v2" /></svg>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -789,7 +827,7 @@ export default function DespesasPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            <button onClick={() => setShowContaForm(!showContaForm)} style={{
+            <button onClick={() => { setShowContaForm(!showContaForm); setEditingConta(null); setContaForm({ nome: '', banco: '', agencia: '', conta: '', digito: '', pix: '', tipo: 'empresa' }); setErrorConta('') }} style={{
               display: 'inline-flex', alignItems: 'center', gap: '7px',
               padding: '10px 20px', borderRadius: '6px', background: 'var(--ink)', color: 'var(--bg)',
               border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
@@ -855,7 +893,7 @@ export default function DespesasPage() {
                   border: 'none', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
                   opacity: savingConta || !contaForm.nome || !contaForm.banco ? 0.4 : 1,
                 }}>
-                  {savingConta ? 'Salvando...' : 'Cadastrar conta'}
+                  {savingConta ? 'Salvando...' : editingConta ? 'Salvar alterações' : 'Cadastrar conta'}
                 </button>
               </div>
             </div>
@@ -916,15 +954,14 @@ export default function DespesasPage() {
                     )}
                   </div>
 
-                  <button onClick={() => handleDesativarConta(c.id)} title="Remover conta" style={{
-                    position: 'absolute', top: '12px', right: '12px',
-                    background: 'transparent', border: 'none', cursor: 'pointer',
-                    color: 'var(--ink-muted)', display: 'flex', padding: '4px',
-                  }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M9 6V4h6v2" />
-                    </svg>
-                  </button>
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '4px' }}>
+                    <button onClick={() => abrirEdicaoConta(c)} title="Editar" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                    </button>
+                    <button onClick={() => handleDesativarConta(c.id)} title="Remover" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M9 6V4h6v2" /></svg>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
