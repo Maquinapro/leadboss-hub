@@ -139,7 +139,6 @@ export default function DespesasPage() {
     categoria: 'software_ia',
     forma_pagamento: 'pix',
     cartao_id: '',
-    conta_corrente_id: '',
     valor_total: '',
     parcelas: '1',
     mes_inicio: toISODate(new Date()),
@@ -162,6 +161,10 @@ export default function DespesasPage() {
   const [showContaForm, setShowContaForm] = useState(false)
   const [errorConta, setErrorConta] = useState('')
   const [editingConta, setEditingConta] = useState<ContaCorrente | null>(null)
+
+  // ── Modal de baixa
+  const [modalBaixa, setModalBaixa] = useState<{ id: string; data: string; conta_corrente_id: string } | null>(null)
+  const [savingBaixa, setSavingBaixa] = useState(false)
 
   // ── Load ────────────────────────────────────────────────
 
@@ -278,30 +281,44 @@ export default function DespesasPage() {
     const { error: err } = await supabase.from('despesas').insert({
       descricao: form.descricao,
       categoria: form.categoria,
-      origem: form.conta_corrente_id ? 'agencia' : 'agencia', // backward compat
+      origem: 'agencia',
       forma_pagamento: form.forma_pagamento,
       cartao_id: form.forma_pagamento === 'cartao' && form.cartao_id ? form.cartao_id : null,
-      conta_corrente_id: form.conta_corrente_id || null,
       valor_total: Number(form.valor_total),
       parcelas: Number(form.parcelas),
       mes_inicio: form.mes_inicio,
       data_pagamento: form.data_pagamento || null,
       recorrente: form.recorrente,
       observacoes: form.observacoes || null,
-      status: form.data_pagamento ? 'pago' : 'pendente',
+      status: 'pendente',
     })
     if (err) { setError('Erro: ' + err.message); setSaving(false); return }
-    setForm({ descricao: '', categoria: 'software_ia', forma_pagamento: 'pix', cartao_id: '', conta_corrente_id: '', valor_total: '', parcelas: '1', mes_inicio: toISODate(new Date()), data_pagamento: '', recorrente: false, observacoes: '' })
+    setForm({ descricao: '', categoria: 'software_ia', forma_pagamento: 'pix', cartao_id: '', valor_total: '', parcelas: '1', mes_inicio: toISODate(new Date()), data_pagamento: '', recorrente: false, observacoes: '' })
     setShowForm(false); setSaving(false)
     await loadAll()
   }
 
   async function handleToggleStatus(id: string, status: string) {
-    const novo = status === 'pago' ? 'pendente' : 'pago'
-    const updates: Record<string, unknown> = { status: novo }
-    if (novo === 'pago') updates.data_pagamento = todayISO()
-    if (novo === 'pendente') updates.data_pagamento = null
-    await supabase.from('despesas').update(updates).eq('id', id)
+    if (status !== 'pago') {
+      // abrir modal de baixa
+      setModalBaixa({ id, data: todayISO(), conta_corrente_id: '' })
+      return
+    }
+    // desfazer baixa
+    await supabase.from('despesas').update({ status: 'pendente', data_pagamento: null, conta_corrente_id: null }).eq('id', id)
+    await loadAll()
+  }
+
+  async function handleConfirmarBaixa() {
+    if (!modalBaixa) return
+    setSavingBaixa(true)
+    await supabase.from('despesas').update({
+      status: 'pago',
+      data_pagamento: modalBaixa.data || todayISO(),
+      conta_corrente_id: modalBaixa.conta_corrente_id || null,
+    }).eq('id', modalBaixa.id)
+    setModalBaixa(null)
+    setSavingBaixa(false)
     await loadAll()
   }
 
@@ -592,29 +609,8 @@ export default function DespesasPage() {
                 </div>
               )}
 
-              {/* Conta corrente */}
-              <div style={{ marginBottom: '12px' }}>
-                <label style={labelStyle}>Conta corrente (de onde sai o dinheiro)</label>
-                <select value={form.conta_corrente_id} onChange={(e) => setForm({ ...form, conta_corrente_id: e.target.value })} style={inputStyle}>
-                  <option value="">Selecione uma conta...</option>
-                  {contasCorrentes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nome} — {c.banco} ({c.tipo === 'empresa' ? 'Empresa' : 'Pessoal'})
-                    </option>
-                  ))}
-                </select>
-                {contasCorrentes.length === 0 && (
-                  <div style={{ fontSize: '12px', color: 'var(--ink-muted)', marginTop: '4px' }}>
-                    Nenhuma conta cadastrada ainda. Vá em{' '}
-                    <button onClick={() => setActiveSection('contas')} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '12px', fontFamily: 'inherit', padding: 0, textDecoration: 'underline' }}>
-                      Contas Correntes
-                    </button>{' '}para cadastrar.
-                  </div>
-                )}
-              </div>
-
               {/* Linha 2 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                 <div>
                   <label style={labelStyle}>Valor total (R$) *</label>
                   <input type="number" step="0.01" value={form.valor_total} onChange={(e) => setForm({ ...form, valor_total: e.target.value })} style={inputStyle} placeholder="0,00" />
@@ -626,10 +622,6 @@ export default function DespesasPage() {
                 <div>
                   <label style={labelStyle}>Mês inicial</label>
                   <input type="month" value={form.mes_inicio.substring(0, 7)} onChange={(e) => setForm({ ...form, mes_inicio: e.target.value + '-01' })} style={inputStyle} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Data de pagamento</label>
-                  <input type="date" value={form.data_pagamento} onChange={(e) => setForm({ ...form, data_pagamento: e.target.value })} style={inputStyle} placeholder="Deixe vazio se ainda não pago" />
                 </div>
               </div>
 
@@ -987,6 +979,55 @@ export default function DespesasPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Modal de baixa ── */}
+      {modalBaixa && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(26,26,26,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: '10px', padding: '28px', width: '100%', maxWidth: '420px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 className="font-serif" style={{ fontSize: '18px', fontWeight: 600, marginBottom: '6px' }}>Confirmar pagamento</h3>
+            <p style={{ fontSize: '13px', color: 'var(--ink-muted)', marginBottom: '20px' }}>Informe quando e de onde saiu o dinheiro.</p>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--ink-muted)', marginBottom: '4px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Data do pagamento *
+              </label>
+              <input
+                type="date"
+                value={modalBaixa.data}
+                onChange={(e) => setModalBaixa({ ...modalBaixa, data: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--line)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', color: 'var(--ink)' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--ink-muted)', marginBottom: '4px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Saiu de qual conta?
+              </label>
+              <select
+                value={modalBaixa.conta_corrente_id}
+                onChange={(e) => setModalBaixa({ ...modalBaixa, conta_corrente_id: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--line)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', color: 'var(--ink)' }}
+              >
+                <option value="">Não informar</option>
+                {contasCorrentes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome} — {c.banco} ({c.tipo === 'empresa' ? 'Empresa' : 'Pessoal'})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setModalBaixa(null)} style={{ padding: '10px 20px', borderRadius: '4px', background: 'transparent', border: '1px solid var(--line)', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', color: 'var(--ink)' }}>
+                Cancelar
+              </button>
+              <button onClick={handleConfirmarBaixa} disabled={savingBaixa || !modalBaixa.data} style={{ padding: '10px 24px', borderRadius: '4px', background: 'var(--green)', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: savingBaixa || !modalBaixa.data ? 0.5 : 1 }}>
+                {savingBaixa ? 'Confirmando...' : 'Confirmar pagamento'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
