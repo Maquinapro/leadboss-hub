@@ -79,6 +79,19 @@ export default function PagamentosPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  // Modal fatura avulsa
+  const [modalAvulsaOpen, setModalAvulsaOpen] = useState(false)
+  const [savingAvulsa, setSavingAvulsa] = useState(false)
+  const [avulsaForm, setAvulsaForm] = useState({
+    contrato_id: '',
+    valor: '',
+    data_vencimento: toISODate(new Date()),
+    ja_pago: false,
+    data_pagamento: toISODate(new Date()),
+    metodo_pagamento: 'PIX',
+    observacoes: '',
+  })
+
   const hoje = new Date()
   const [mesAtual, setMesAtual] = useState(() => getFirstDayOfMonth(hoje.getFullYear(), hoje.getMonth()))
 
@@ -198,6 +211,37 @@ export default function PagamentosPage() {
     }
 
     setGenerating(false)
+    await loadData()
+  }
+
+  async function gerarFaturaAvulsa(e: FormEvent) {
+    e.preventDefault()
+    if (!avulsaForm.contrato_id || !avulsaForm.valor) return
+    setSavingAvulsa(true)
+    setError('')
+
+    const contrato = contratos.find(c => c.id === avulsaForm.contrato_id)
+    if (!contrato) { setSavingAvulsa(false); return }
+
+    const mesIni = toISODate(mesAtual)
+
+    const { error: insertError } = await supabase.from('pagamentos').insert({
+      cliente_id: contrato.cliente_id,
+      contrato_id: contrato.id,
+      mes_referencia: mesIni,
+      valor: Number(avulsaForm.valor),
+      data_vencimento: avulsaForm.data_vencimento,
+      status: avulsaForm.ja_pago ? 'pago' : 'pendente',
+      data_pagamento: avulsaForm.ja_pago ? avulsaForm.data_pagamento : null,
+      metodo_pagamento: avulsaForm.ja_pago ? avulsaForm.metodo_pagamento : null,
+      observacoes: avulsaForm.observacoes || null,
+    })
+
+    if (insertError) { setError('Erro: ' + insertError.message); setSavingAvulsa(false); return }
+
+    setModalAvulsaOpen(false)
+    setAvulsaForm({ contrato_id: '', valor: '', data_vencimento: toISODate(new Date()), ja_pago: false, data_pagamento: toISODate(new Date()), metodo_pagamento: 'PIX', observacoes: '' })
+    setSavingAvulsa(false)
     await loadData()
   }
 
@@ -370,17 +414,30 @@ export default function PagamentosPage() {
           </p>
         </div>
 
-        <button onClick={gerarFaturasDoMes} disabled={generating} style={{
-          display: 'inline-flex', alignItems: 'center', gap: '8px',
-          background: 'var(--ink)', color: 'var(--bg)', padding: '12px 20px', borderRadius: '6px',
-          fontSize: '14px', fontWeight: 500, border: 'none', cursor: generating ? 'not-allowed' : 'pointer',
-          fontFamily: 'inherit', opacity: generating ? 0.6 : 1,
-        }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          {generating ? 'Gerando faturas...' : 'Gerar faturas do mês'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button onClick={() => setModalAvulsaOpen(true)} style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            background: 'transparent', color: 'var(--ink)', padding: '12px 18px', borderRadius: '6px',
+            fontSize: '14px', fontWeight: 500, border: '1px solid var(--line)', cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+            Fatura avulsa
+          </button>
+          <button onClick={gerarFaturasDoMes} disabled={generating} style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            background: 'var(--ink)', color: 'var(--bg)', padding: '12px 20px', borderRadius: '6px',
+            fontSize: '14px', fontWeight: 500, border: 'none', cursor: generating ? 'not-allowed' : 'pointer',
+            fontFamily: 'inherit', opacity: generating ? 0.6 : 1,
+          }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {generating ? 'Gerando faturas...' : 'Gerar faturas do mês'}
+          </button>
+        </div>
       </div>
 
       {/* Navegador de mês */}
@@ -593,6 +650,157 @@ export default function PagamentosPage() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Modal Fatura Avulsa */}
+      {modalAvulsaOpen && (
+        <div onClick={() => setModalAvulsaOpen(false)} style={{
+          position: 'fixed', inset: 0, background: 'rgba(26,26,26,0.5)',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+          zIndex: 100, padding: '40px 20px', overflowY: 'auto',
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: 'var(--bg-card)', borderRadius: '8px', width: '100%', maxWidth: '540px',
+            padding: '28px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', position: 'relative',
+          }}>
+            <button onClick={() => setModalAvulsaOpen(false)} style={{
+              position: 'absolute', top: '14px', right: '14px',
+              background: 'transparent', border: 'none', fontSize: '22px', cursor: 'pointer',
+              color: 'var(--ink-muted)', lineHeight: 1,
+            }}>×</button>
+
+            <h3 className="font-serif" style={{ fontSize: '24px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '4px' }}>
+              Fatura avulsa
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--ink-muted)', marginBottom: '24px' }}>
+              Gera uma fatura para um cliente específico em {mesLabel}.
+            </p>
+
+            <form onSubmit={gerarFaturaAvulsa}>
+              {/* Cliente */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={labelStyle}>Cliente *</label>
+                <select
+                  required
+                  value={avulsaForm.contrato_id}
+                  onChange={(e) => {
+                    const contrato = contratos.find(c => c.id === e.target.value)
+                    setAvulsaForm({
+                      ...avulsaForm,
+                      contrato_id: e.target.value,
+                      valor: contrato ? String(contrato.valor_mensal) : avulsaForm.valor,
+                    })
+                  }}
+                  style={inputStyle}
+                >
+                  <option value="">Selecione o cliente...</option>
+                  {contratos.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.cliente_nome}{c.descricao ? ` — ${c.descricao}` : ''} ({formatMoeda(c.valor_mensal)}/mês)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Valor e vencimento */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                <div>
+                  <label style={labelStyle}>Valor (R$) *</label>
+                  <input
+                    type="number" step="0.01" required
+                    value={avulsaForm.valor}
+                    onChange={(e) => setAvulsaForm({ ...avulsaForm, valor: e.target.value })}
+                    style={inputStyle} placeholder="0,00"
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Data de vencimento *</label>
+                  <input
+                    type="date" required
+                    value={avulsaForm.data_vencimento}
+                    onChange={(e) => setAvulsaForm({ ...avulsaForm, data_vencimento: e.target.value })}
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+
+              {/* Já pago? */}
+              <div style={{ padding: '14px 16px', background: avulsaForm.ja_pago ? '#e0ebd9' : 'var(--line-soft)', borderRadius: '6px', marginBottom: avulsaForm.ja_pago ? '16px' : '20px', transition: 'background 0.15s' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={avulsaForm.ja_pago}
+                    onChange={(e) => setAvulsaForm({ ...avulsaForm, ja_pago: e.target.checked })}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--green)' }}
+                  />
+                  <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--ink)' }}>
+                    Já foi pago — dar baixa imediatamente
+                  </span>
+                </label>
+              </div>
+
+              {/* Detalhes do pagamento (condicional) */}
+              {avulsaForm.ja_pago && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                  <div>
+                    <label style={labelStyle}>Data do pagamento *</label>
+                    <input
+                      type="date" required={avulsaForm.ja_pago}
+                      value={avulsaForm.data_pagamento}
+                      onChange={(e) => setAvulsaForm({ ...avulsaForm, data_pagamento: e.target.value })}
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Método *</label>
+                    <select
+                      value={avulsaForm.metodo_pagamento}
+                      onChange={(e) => setAvulsaForm({ ...avulsaForm, metodo_pagamento: e.target.value })}
+                      style={inputStyle}
+                    >
+                      {['PIX', 'Boleto', 'Transferência', 'Cartão', 'Dinheiro', 'Outro'].map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={labelStyle}>Observações</label>
+                <input
+                  type="text"
+                  value={avulsaForm.observacoes}
+                  onChange={(e) => setAvulsaForm({ ...avulsaForm, observacoes: e.target.value })}
+                  style={inputStyle} placeholder="Opcional"
+                />
+              </div>
+
+              {error && (
+                <div style={{ background: 'var(--accent-soft)', color: 'var(--accent)', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', marginBottom: '16px' }}>
+                  {error}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setModalAvulsaOpen(false)} style={{
+                  padding: '10px 18px', borderRadius: '4px', fontSize: '14px', fontWeight: 500,
+                  color: 'var(--ink-soft)', border: '1px solid var(--line)', background: 'transparent',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>Cancelar</button>
+                <button type="submit" disabled={savingAvulsa} style={{
+                  padding: '10px 20px', borderRadius: '4px',
+                  background: avulsaForm.ja_pago ? 'var(--green)' : 'var(--ink)',
+                  color: 'var(--bg)', border: 'none', fontSize: '14px', fontWeight: 500,
+                  cursor: savingAvulsa ? 'not-allowed' : 'pointer',
+                  opacity: savingAvulsa ? 0.6 : 1, fontFamily: 'inherit',
+                }}>
+                  {savingAvulsa ? 'Salvando...' : avulsaForm.ja_pago ? 'Gerar e dar baixa' : 'Gerar fatura'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
