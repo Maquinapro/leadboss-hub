@@ -17,7 +17,12 @@ CREATE TABLE IF NOT EXISTS contas_correntes (
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Novas colunas na tabela despesas
+-- 2. Juros e valor_pago na tabela pagamentos
+ALTER TABLE pagamentos
+  ADD COLUMN IF NOT EXISTS valor_pago  NUMERIC(10,2),
+  ADD COLUMN IF NOT EXISTS juros       NUMERIC(10,2);
+
+-- 3. Novas colunas na tabela despesas
 ALTER TABLE despesas
   ADD COLUMN IF NOT EXISTS data_pagamento    DATE,
   ADD COLUMN IF NOT EXISTS data_vencimento   DATE,

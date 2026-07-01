@@ -25,6 +25,8 @@ type Pagamento = {
   valor: number
   data_vencimento: string
   data_pagamento: string | null
+  valor_pago: number | null
+  juros: number | null
   status: string
   metodo_pagamento: string | null
   nota_fiscal: string | null
@@ -98,6 +100,7 @@ export default function PagamentosPage() {
   const [pagamentoForm, setPagamentoForm] = useState({
     data_pagamento: toISODate(new Date()),
     metodo_pagamento: 'PIX',
+    valor_pago: '',
     nota_fiscal: '',
     observacoes: '',
   })
@@ -250,6 +253,7 @@ export default function PagamentosPage() {
     setPagamentoForm({
       data_pagamento: p.data_pagamento || toISODate(new Date()),
       metodo_pagamento: p.metodo_pagamento || 'PIX',
+      valor_pago: p.valor_pago ? String(p.valor_pago) : '',
       nota_fiscal: p.nota_fiscal || '',
       observacoes: p.observacoes || '',
     })
@@ -262,12 +266,18 @@ export default function PagamentosPage() {
     if (!pagamentoSelecionado) return
     setSaving(true)
 
+    const valorOriginal = Number(pagamentoSelecionado.valor)
+    const valorPago = pagamentoForm.valor_pago ? Number(pagamentoForm.valor_pago) : valorOriginal
+    const juros = valorPago > valorOriginal ? valorPago - valorOriginal : 0
+
     const { error: updateError } = await supabase
       .from('pagamentos')
       .update({
         status: 'pago',
         data_pagamento: pagamentoForm.data_pagamento,
         metodo_pagamento: pagamentoForm.metodo_pagamento,
+        valor_pago: valorPago,
+        juros: juros > 0 ? juros : null,
         nota_fiscal: pagamentoForm.nota_fiscal || null,
         observacoes: pagamentoForm.observacoes || null,
       })
@@ -558,8 +568,13 @@ export default function PagamentosPage() {
 
                 <div style={{ minWidth: '110px', textAlign: 'right' }}>
                   <div className="font-serif" style={{ fontSize: '18px', fontWeight: 600 }}>
-                    {formatMoeda(Number(p.valor))}
+                    {formatMoeda(p.valor_pago != null ? p.valor_pago : Number(p.valor))}
                   </div>
+                  {p.juros != null && p.juros > 0 && (
+                    <div style={{ fontSize: '11px', color: '#8a5a00', fontWeight: 600 }}>
+                      +{formatMoeda(p.juros)} juros
+                    </div>
+                  )}
                   {p.metodo_pagamento && (
                     <div style={{ fontSize: '11px', color: 'var(--ink-muted)' }}>
                       via {p.metodo_pagamento}
@@ -825,10 +840,45 @@ export default function PagamentosPage() {
               Marcar como pago
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--ink-muted)', marginBottom: '20px' }}>
-              {pagamentoSelecionado.cliente?.nome} · {formatMoeda(Number(pagamentoSelecionado.valor))}
+              {pagamentoSelecionado.cliente?.nome}
             </p>
 
             <form onSubmit={marcarComoPago}>
+              {/* Valores */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={labelStyle}>Valor original</label>
+                  <div style={{ ...inputStyle, background: 'var(--line-soft)', color: 'var(--ink-muted)', display: 'flex', alignItems: 'center' }}>
+                    {formatMoeda(Number(pagamentoSelecionado.valor))}
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Valor recebido</label>
+                  <input
+                    type="number" step="0.01" min="0"
+                    value={pagamentoForm.valor_pago}
+                    onChange={(e) => setPagamentoForm({ ...pagamentoForm, valor_pago: e.target.value })}
+                    style={inputStyle}
+                    placeholder={String(pagamentoSelecionado.valor)}
+                  />
+                </div>
+              </div>
+
+              {/* Destaque de juros */}
+              {pagamentoForm.valor_pago && Number(pagamentoForm.valor_pago) > Number(pagamentoSelecionado.valor) && (
+                <div style={{
+                  background: '#fff4e0', border: '1px solid #f0c060', borderRadius: '6px',
+                  padding: '10px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px',
+                }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a5a00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <span style={{ fontSize: '13px', color: '#8a5a00' }}>
+                    <strong>{formatMoeda(Number(pagamentoForm.valor_pago) - Number(pagamentoSelecionado.valor))}</strong> de juros / mora
+                  </span>
+                </div>
+              )}
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
                   <label style={labelStyle}>Data do pagamento *</label>

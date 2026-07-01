@@ -12,6 +12,7 @@ type Dados = {
   receberRecebido: number
   receberPendente: number
   receberAtrasado: number
+  jurosRecebidos: number
   // Contas a pagar
   pagarTotal: number
   pagarPago: number
@@ -60,7 +61,7 @@ export default function PanoramaMes() {
       // Contas a receber do mês
       const { data: pags } = await supabase
         .from('pagamentos')
-        .select('valor, status, data_vencimento')
+        .select('valor, valor_pago, juros, status, data_vencimento')
         .gte('mes_referencia', inicioMes)
         .lt('mes_referencia', fimMes)
 
@@ -75,7 +76,8 @@ export default function PanoramaMes() {
       const despsArr = desps || []
 
       // Receber
-      const receberRecebido = pagsArr.filter(p => p.status === 'pago').reduce((s, p) => s + Number(p.valor), 0)
+      const receberRecebido = pagsArr.filter(p => p.status === 'pago').reduce((s, p) => s + Number(p.valor_pago ?? p.valor), 0)
+      const jurosRecebidos = pagsArr.filter(p => p.status === 'pago' && p.juros).reduce((s, p) => s + Number(p.juros), 0)
       const receberAtrasado = pagsArr.filter(p => p.status === 'atrasado' || (p.status === 'pendente' && p.data_vencimento && p.data_vencimento < hojeISO)).reduce((s, p) => s + Number(p.valor), 0)
       const receberPendente = pagsArr.filter(p => p.status === 'pendente' && (!p.data_vencimento || p.data_vencimento >= hojeISO)).reduce((s, p) => s + Number(p.valor), 0)
       const receberTotal = receberRecebido + receberAtrasado + receberPendente
@@ -87,7 +89,7 @@ export default function PanoramaMes() {
       const pagarPendente = despsArr.filter(d => d.status !== 'pago' && (!d.data_vencimento || d.data_vencimento >= hojeISO)).reduce((s, d) => s + valorMes(d), 0)
       const pagarTotal = pagarPago + pagarAtrasado + pagarPendente
 
-      setDados({ receberTotal, receberRecebido, receberPendente, receberAtrasado, pagarTotal, pagarPago, pagarPendente, pagarAtrasado })
+      setDados({ receberTotal, receberRecebido, receberPendente, receberAtrasado, jurosRecebidos, pagarTotal, pagarPago, pagarPendente, pagarAtrasado })
     }
     load()
   }, [])
@@ -180,7 +182,17 @@ export default function PanoramaMes() {
               <div style={{ width: `${(dados.receberAtrasado / dados.receberTotal) * 100}%`, background: 'var(--accent)' }} />
             </div>
           )}
-          <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Total previsto: <strong style={{ color: 'var(--ink)' }}>{fmtMoeda(dados.receberTotal)}</strong></div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Total previsto: <strong style={{ color: 'var(--ink)' }}>{fmtMoeda(dados.receberTotal)}</strong></div>
+            {dados.jurosRecebidos > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', background: '#fff4e0', border: '1px solid #f0c060', borderRadius: '4px', padding: '3px 8px' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8a5a00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span style={{ color: '#8a5a00', fontWeight: 600 }}>{fmtMoeda(dados.jurosRecebidos)} em juros</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Contas a Pagar */}
