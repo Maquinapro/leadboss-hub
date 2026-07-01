@@ -45,6 +45,7 @@ type Despesa = {
   mes_inicio: string
   status: string
   observacoes: string | null
+  data_vencimento: string | null
   data_pagamento: string | null
   recorrente: boolean
   conta_corrente_id: string | null
@@ -142,6 +143,7 @@ export default function DespesasPage() {
     valor_total: '',
     parcelas: '1',
     mes_inicio: toISODate(new Date()),
+    data_vencimento: '',
     data_pagamento: '',
     recorrente: false,
     observacoes: '',
@@ -287,13 +289,14 @@ export default function DespesasPage() {
       valor_total: Number(form.valor_total),
       parcelas: Number(form.parcelas),
       mes_inicio: form.mes_inicio,
+      data_vencimento: form.data_vencimento || null,
       data_pagamento: form.data_pagamento || null,
       recorrente: form.recorrente,
       observacoes: form.observacoes || null,
       status: 'pendente',
     })
     if (err) { setError('Erro: ' + err.message); setSaving(false); return }
-    setForm({ descricao: '', categoria: 'software_ia', forma_pagamento: 'pix', cartao_id: '', valor_total: '', parcelas: '1', mes_inicio: toISODate(new Date()), data_pagamento: '', recorrente: false, observacoes: '' })
+    setForm({ descricao: '', categoria: 'software_ia', forma_pagamento: 'pix', cartao_id: '', valor_total: '', parcelas: '1', mes_inicio: toISODate(new Date()), data_vencimento: '', data_pagamento: '', recorrente: false, observacoes: '' })
     setShowForm(false); setSaving(false)
     await loadAll()
   }
@@ -610,7 +613,7 @@ export default function DespesasPage() {
               )}
 
               {/* Linha 2 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                 <div>
                   <label style={labelStyle}>Valor total (R$) *</label>
                   <input type="number" step="0.01" value={form.valor_total} onChange={(e) => setForm({ ...form, valor_total: e.target.value })} style={inputStyle} placeholder="0,00" />
@@ -622,6 +625,10 @@ export default function DespesasPage() {
                 <div>
                   <label style={labelStyle}>Mês inicial</label>
                   <input type="month" value={form.mes_inicio.substring(0, 7)} onChange={(e) => setForm({ ...form, mes_inicio: e.target.value + '-01' })} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Vencimento</label>
+                  <input type="date" value={form.data_vencimento} onChange={(e) => setForm({ ...form, data_vencimento: e.target.value })} style={inputStyle} placeholder="Dia de vencer" />
                 </div>
               </div>
 
@@ -679,6 +686,9 @@ export default function DespesasPage() {
               {despesas.map((d) => {
                 const valorMes = Number(d.valor_total) / d.parcelas
                 const isPago = d.status === 'pago'
+                const hoje2 = todayISO()
+                const vencido = !isPago && d.data_vencimento && d.data_vencimento < hoje2
+                const venceHoje = !isPago && d.data_vencimento && d.data_vencimento === hoje2
                 const conta = d.conta_corrente
                 const origemLabel = conta
                   ? `${conta.nome} — ${conta.banco}`
@@ -710,6 +720,11 @@ export default function DespesasPage() {
                         <span style={{ fontWeight: 600 }}>{CAT_LABELS[d.categoria] || d.categoria}</span>
                         {origemLabel && <><span>·</span><span>{origemLabel}</span></>}
                         {d.cartao && <><span>·</span><span style={{ color: d.cartao.cor, fontWeight: 500 }}>{d.cartao.nome}</span></>}
+                        {d.data_vencimento && !isPago && (
+                          <><span>·</span><span style={{ color: vencido ? 'var(--accent)' : venceHoje ? '#b8862c' : 'var(--ink-muted)', fontWeight: vencido || venceHoje ? 600 : 400 }}>
+                            {vencido ? 'Venceu ' : venceHoje ? 'Vence hoje · ' : 'Vence '}{vencido || venceHoje ? '' : ''}{new Date(d.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
+                          </span></>
+                        )}
                         {d.data_pagamento && <><span>·</span><span style={{ color: 'var(--green)' }}>Pago em {new Date(d.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')}</span></>}
                       </div>
                     </div>

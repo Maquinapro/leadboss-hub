@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS contas_correntes (
 -- 2. Novas colunas na tabela despesas
 ALTER TABLE despesas
   ADD COLUMN IF NOT EXISTS data_pagamento    DATE,
+  ADD COLUMN IF NOT EXISTS data_vencimento   DATE,
   ADD COLUMN IF NOT EXISTS recorrente        BOOLEAN NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS conta_corrente_id UUID REFERENCES contas_correntes(id);
 
