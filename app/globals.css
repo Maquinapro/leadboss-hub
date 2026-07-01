@@ -123,6 +123,18 @@ select {
   box-shadow: 0 16px 40px rgba(26, 26, 26, 0.09);
 }
 
+/* Sistema: nav items */
+.sistema-nav-link:hover {
+  color: var(--ink) !important;
+  background: var(--bg-card) !important;
+}
+
+/* Sistema: nav cards */
+.sistema-nav-card:hover {
+  border-color: var(--line) !important;
+  box-shadow: 0 4px 16px rgba(26, 26, 26, 0.08) !important;
+}
+
 /* Rodapé: alvos de toque acessíveis (WCAG) */
 .foot-links a {
   display: inline-block;

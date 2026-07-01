@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
+import SistemaNav from '@/components/SistemaNav'
 import { createClient } from '@/lib/supabase-client'
 import { gerarReciboPDF, carregarLogoBase64 } from '@/components/ReciboPDF'
 import { gerarFaturaPDF } from '@/components/FaturaPDF'
@@ -357,23 +358,28 @@ export default function PagamentosPage() {
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 20px 80px' }}>
       <Header userEmail={userEmail} />
+      <SistemaNav />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <Link href="/sistema" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
-            ← Dashboard
-          </Link>
-          <h2 className="font-serif" style={{ fontSize: '36px', fontWeight: 600, letterSpacing: '-0.02em', marginTop: '8px', lineHeight: 1 }}>
-            Recebimentos
+          <h2 className="font-serif" style={{ fontSize: '36px', fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1 }}>
+            Contas a Receber
           </h2>
+          <p style={{ fontSize: '13px', color: 'var(--ink-muted)', marginTop: '6px' }}>
+            Faturas mensais, recebimentos e emissão de documentos
+          </p>
         </div>
 
         <button onClick={gerarFaturasDoMes} disabled={generating} style={{
-          background: 'var(--ink)', color: 'var(--bg)', padding: '12px 20px', borderRadius: '4px',
+          display: 'inline-flex', alignItems: 'center', gap: '8px',
+          background: 'var(--ink)', color: 'var(--bg)', padding: '12px 20px', borderRadius: '6px',
           fontSize: '14px', fontWeight: 500, border: 'none', cursor: generating ? 'not-allowed' : 'pointer',
           fontFamily: 'inherit', opacity: generating ? 0.6 : 1,
         }}>
-          {generating ? 'Gerando...' : '+ Gerar faturas do mês'}
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          {generating ? 'Gerando faturas...' : 'Gerar faturas do mês'}
         </button>
       </div>
 
@@ -437,16 +443,36 @@ export default function PagamentosPage() {
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink-muted)' }}>Carregando...</div>
       ) : pagamentos.length === 0 ? (
         <div style={{
-          background: 'var(--bg-card)', border: '1px dashed var(--line)', borderRadius: '6px',
-          padding: '60px 20px', textAlign: 'center', color: 'var(--ink-muted)',
+          background: 'var(--bg-card)', border: '1px dashed var(--line)', borderRadius: '8px',
+          padding: '48px 24px', textAlign: 'center',
         }}>
-          <div className="font-serif" style={{ fontSize: '48px', fontStyle: 'italic', color: 'var(--line)', marginBottom: '8px' }}>*</div>
+          <div style={{
+            width: '56px', height: '56px', borderRadius: '50%',
+            background: 'var(--line-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+          </div>
           <h3 className="font-serif" style={{ fontSize: '22px', color: 'var(--ink)', marginBottom: '8px', fontWeight: 600 }}>
-            Nenhuma fatura nesse mês
+            Nenhuma fatura em {mesLabel}
           </h3>
-          <p style={{ fontSize: '14px', marginBottom: '20px' }}>
-            Clique em "+ Gerar faturas do mês" para criar uma fatura pra cada cliente ativo, usando o dia de vencimento de cada um.
+          <p style={{ fontSize: '14px', color: 'var(--ink-muted)', marginBottom: '24px', maxWidth: '380px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+            Gere as faturas do mês para criar uma cobrança para cada cliente ativo, com o dia de vencimento de cada contrato.
           </p>
+          <button onClick={gerarFaturasDoMes} disabled={generating} style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            background: 'var(--ink)', color: 'var(--bg)', padding: '12px 24px', borderRadius: '6px',
+            fontSize: '14px', fontWeight: 500, border: 'none', cursor: generating ? 'not-allowed' : 'pointer',
+            fontFamily: 'inherit', opacity: generating ? 0.6 : 1,
+          }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {generating ? 'Gerando...' : `Gerar faturas de ${mesLabel}`}
+          </button>
         </div>
       ) : (
         <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px', overflow: 'hidden' }}>
@@ -492,52 +518,77 @@ export default function PagamentosPage() {
                   {cfg.label}
                 </span>
 
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                   {p.status === 'pago' ? (
                     <>
-                      <button onClick={() => handleGerarRecibo(p)} disabled={gerandoRecibo === p.id} style={{
-                        padding: '6px 14px', borderRadius: '4px', background: 'var(--green)', color: 'var(--bg)',
+                      <button onClick={() => handleGerarRecibo(p)} disabled={gerandoRecibo === p.id} title="Gerar recibo em PDF" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                        padding: '6px 12px', borderRadius: '4px', background: 'var(--green)', color: 'var(--bg)',
                         border: 'none', fontSize: '12px', fontWeight: 500,
                         cursor: gerandoRecibo === p.id ? 'not-allowed' : 'pointer',
                         opacity: gerandoRecibo === p.id ? 0.6 : 1, fontFamily: 'inherit',
                       }}>
-                        {gerandoRecibo === p.id ? 'Gerando...' : '📄 Recibo'}
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
+                        </svg>
+                        {gerandoRecibo === p.id ? 'Gerando...' : 'Recibo'}
                       </button>
-                      <button onClick={() => reverterParaPendente(p.id)} style={{
-                        padding: '6px 14px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
-                        border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-                      }}>
-                        Reverter
-                      </button>
-                      <button onClick={() => handleGerarFatura(p)} disabled={gerandoFatura === p.id} style={{
-                        padding: '6px 14px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
+                      <button onClick={() => handleGerarFatura(p)} disabled={gerandoFatura === p.id} title="Gerar fatura em PDF" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                        padding: '6px 12px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
                         border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500,
                         cursor: gerandoFatura === p.id ? 'not-allowed' : 'pointer',
                         opacity: gerandoFatura === p.id ? 0.6 : 1, fontFamily: 'inherit',
                       }}>
-                        {gerandoFatura === p.id ? 'Gerando...' : '🧾 Fatura'}
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+                        </svg>
+                        {gerandoFatura === p.id ? 'Gerando...' : 'Fatura'}
+                      </button>
+                      <button onClick={() => reverterParaPendente(p.id)} title="Desfazer pagamento" style={{
+                        padding: '6px 10px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-muted)',
+                        border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                      }}>
+                        Reverter
                       </button>
                     </>
                   ) : (
-                    <button onClick={() => abrirModalPagamento(p)} style={{
-                      padding: '6px 14px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
-                      border: 'none', fontSize: '12px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-                    }}>
-                      Marcar como pago
-                    </button>
+                    <>
+                      <button onClick={() => abrirModalPagamento(p)} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                        padding: '6px 12px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
+                        border: 'none', fontSize: '12px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                      }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Marcar como pago
+                      </button>
+                      <button onClick={() => handleGerarFatura(p)} disabled={gerandoFatura === p.id} title="Gerar fatura em PDF" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                        padding: '6px 12px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
+                        border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500,
+                        cursor: gerandoFatura === p.id ? 'not-allowed' : 'pointer',
+                        opacity: gerandoFatura === p.id ? 0.6 : 1, fontFamily: 'inherit',
+                      }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+                        </svg>
+                        {gerandoFatura === p.id ? 'Gerando...' : 'Fatura'}
+                      </button>
+                    </>
                   )}
-                  <button onClick={() => handleGerarFatura(p)} disabled={gerandoFatura === p.id} style={{
-                    padding: '6px 14px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-soft)',
-                    border: '1px solid var(--line)', fontSize: '12px', fontWeight: 500,
-                    cursor: gerandoFatura === p.id ? 'not-allowed' : 'pointer',
-                    opacity: gerandoFatura === p.id ? 0.6 : 1, fontFamily: 'inherit',
+                  <button onClick={() => handleDelete(p.id)} title="Excluir fatura" style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: '30px', height: '30px', borderRadius: '4px', background: 'transparent',
+                    color: 'var(--ink-muted)', border: '1px solid var(--line)', cursor: 'pointer',
+                    fontFamily: 'inherit', flexShrink: 0,
                   }}>
-                    {gerandoFatura === p.id ? 'Gerando...' : '🧾 Fatura'}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4h6v2" />
+                    </svg>
                   </button>
-                  <button onClick={() => handleDelete(p.id)} title="Excluir" style={{
-                    padding: '6px 10px', borderRadius: '4px', background: 'transparent', color: 'var(--ink-muted)',
-                    border: '1px solid var(--line)', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit',
-                  }}>×</button>
                 </div>
               </div>
             )

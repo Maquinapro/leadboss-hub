@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
+import SistemaNav from '@/components/SistemaNav'
 import { createClient } from '@/lib/supabase-client'
 
 type Cartao = {
@@ -238,15 +239,16 @@ export default function DespesasPage() {
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 20px 80px' }}>
       <Header userEmail={userEmail} />
+      <SistemaNav />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <Link href="/sistema" style={{ fontSize: '12px', color: 'var(--ink-muted)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
-            ← Dashboard
-          </Link>
-          <h2 className="font-serif" style={{ fontSize: '36px', fontWeight: 600, letterSpacing: '-0.02em', marginTop: '8px', lineHeight: 1 }}>
-            Despesas
+          <h2 className="font-serif" style={{ fontSize: '36px', fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1 }}>
+            Contas a Pagar
           </h2>
+          <p style={{ fontSize: '13px', color: 'var(--ink-muted)', marginTop: '6px' }}>
+            Saídas do mês: softwares, impostos, cartões e despesas parceladas
+          </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => { setActiveSection('despesas') }} style={{
