@@ -85,6 +85,7 @@ const ultimoDiaMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
 
 function Atalhos({ setInicio, setFim }: { setInicio: (s: string) => void; setFim: (s: string) => void }) {
   const h = new Date()
+  const [ativo, setAtivo] = useState<string | null>(null)
   const atalhos = [
     { label: 'Este mês', fn: () => { setInicio(toISODate(new Date(h.getFullYear(), h.getMonth(), 1))); setFim(toISODate(new Date(h.getFullYear(), h.getMonth() + 1, 0))) } },
     { label: 'Mês passado', fn: () => { const m = new Date(h.getFullYear(), h.getMonth() - 1, 1); setInicio(toISODate(m)); setFim(toISODate(new Date(h.getFullYear(), h.getMonth(), 0))) } },
@@ -92,13 +93,18 @@ function Atalhos({ setInicio, setFim }: { setInicio: (s: string) => void; setFim
   ]
   return (
     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-      {atalhos.map(({ label, fn }) => (
-        <button key={label} type="button" onClick={fn} style={{
-          padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--line)',
-          background: 'transparent', fontSize: '12px', color: 'var(--ink-muted)',
-          cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500,
-        }}>{label}</button>
-      ))}
+      {atalhos.map(({ label, fn }) => {
+        const isAtivo = ativo === label
+        return (
+          <button key={label} type="button" onClick={() => { fn(); setAtivo(label) }} style={{
+            padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
+            border: isAtivo ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+            background: isAtivo ? 'var(--ink)' : 'transparent',
+            color: isAtivo ? 'var(--bg)' : 'var(--ink-muted)',
+            fontSize: '12px', transition: 'all 0.12s',
+          }}>{label}</button>
+        )
+      })}
     </div>
   )
 }
@@ -355,18 +361,19 @@ function RelAPagar() {
     setLoading(true)
     const { data } = await supabase
       .from('despesas')
-      .select('id, data_vencimento, descricao, categoria, forma_pagamento, valor, status')
-      .in('status', ['pendente', 'atrasado'])
-      .gte('data_vencimento', inicio)
-      .lte('data_vencimento', fim)
-      .order('data_vencimento', { ascending: true })
+      .select('id, mes_inicio, data_vencimento, descricao, categoria, forma_pagamento, valor, status')
+      .eq('status', 'pendente')
+      .gte('mes_inicio', inicio)
+      .lte('mes_inicio', fim)
+      .order('data_vencimento', { ascending: true, nullsFirst: false })
     setRows(data || [])
     setBuscou(true)
     setLoading(false)
   }
 
   const total = rows.reduce((s, r) => s + r.valor, 0)
-  const atrasadas = rows.filter(r => r.status === 'atrasado')
+  const hoje = toISODate(new Date())
+  const atrasadas = rows.filter(r => r.data_vencimento && r.data_vencimento < hoje)
 
   return (
     <div>
@@ -375,23 +382,27 @@ function RelAPagar() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
             <SummaryCard label="Total a pagar" value={fmt(total)} color="#c44536" sub={`${rows.length} despesa${rows.length !== 1 ? 's' : ''}`} />
-            <SummaryCard label="Em atraso" value={fmt(atrasadas.reduce((s, r) => s + r.valor, 0))} color="#c44536" sub={`${atrasadas.length} itens`} />
+            <SummaryCard label="Vencidas" value={fmt(atrasadas.reduce((s, r) => s + r.valor, 0))} color="#c44536" sub={`${atrasadas.length} item${atrasadas.length !== 1 ? 's' : ''}`} />
             <SummaryCard label="No prazo" value={fmt(total - atrasadas.reduce((s, r) => s + r.valor, 0))} color="#8a5a00" />
           </div>
           {rows.length === 0 ? <Empty texto="Nenhuma conta a pagar no período." /> : (
             <Table
-              headers={['Vencimento', 'Descrição', 'Categoria', 'Valor', 'Status']}
-              rows={rows.map(r => [
-                fmtData(r.data_vencimento),
-                r.descricao,
-                CAT_LABELS[r.categoria] || r.categoria,
-                fmt(r.valor),
-                <StatusBadge key="s"
-                  label={r.status === 'atrasado' ? 'Atrasado' : 'Pendente'}
-                  bg={r.status === 'atrasado' ? '#fce8e6' : '#fff8e1'}
-                  color={r.status === 'atrasado' ? '#c44536' : '#8a5a00'}
-                />,
-              ])}
+              headers={['Mês', 'Vencimento', 'Descrição', 'Categoria', 'Valor', 'Status']}
+              rows={rows.map(r => {
+                const vencida = r.data_vencimento && r.data_vencimento < hoje
+                return [
+                  fmtData(r.mes_inicio),
+                  fmtData(r.data_vencimento),
+                  r.descricao,
+                  CAT_LABELS[r.categoria] || r.categoria,
+                  fmt(r.valor),
+                  <StatusBadge key="s"
+                    label={vencida ? 'Vencida' : 'Pendente'}
+                    bg={vencida ? '#fce8e6' : '#fff8e1'}
+                    color={vencida ? '#c44536' : '#8a5a00'}
+                  />,
+                ]
+              })}
             />
           )}
         </>
@@ -413,11 +424,11 @@ function RelPagas() {
     setLoading(true)
     const { data } = await supabase
       .from('despesas')
-      .select('id, data_vencimento, data_pagamento, descricao, categoria, forma_pagamento, valor, conta_corrente:contas_correntes(nome)')
+      .select('id, mes_inicio, data_vencimento, data_pagamento, descricao, categoria, forma_pagamento, valor, conta_corrente:contas_correntes(nome)')
       .eq('status', 'pago')
-      .gte('data_vencimento', inicio)
-      .lte('data_vencimento', fim)
-      .order('data_vencimento', { ascending: true })
+      .gte('mes_inicio', inicio)
+      .lte('mes_inicio', fim)
+      .order('mes_inicio', { ascending: true })
     setRows(data || [])
     setBuscou(true)
     setLoading(false)
