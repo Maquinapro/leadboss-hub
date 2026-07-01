@@ -11,9 +11,19 @@ const CAT_LABELS: { [key: string]: string } = {
   saude: 'Saúde', pets: 'Pets', pessoal: 'Pessoal', emprestimo: 'Empréstimo', outros: 'Outros',
 }
 
-type RelatorioTipo = 'fluxo_mensal' | 'historico_cliente' | 'a_pagar' | 'pagas' | 'a_receber' | 'recebidas'
+type RelatorioTipo = 'panorama_mes' | 'fluxo_mensal' | 'historico_cliente' | 'a_pagar' | 'pagas' | 'a_receber' | 'recebidas'
 
 const RELATORIOS: { id: RelatorioTipo; label: string; desc: string; icon: React.ReactNode }[] = [
+  {
+    id: 'panorama_mes',
+    label: 'Panorama do mês',
+    desc: 'Visão consolidada de entradas e saídas do mês atual',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+      </svg>
+    ),
+  },
   {
     id: 'fluxo_mensal',
     label: 'Fluxo mensal',
@@ -146,6 +156,116 @@ function FiltroData({ inicio, fim, setInicio, setFim, onBuscar, loading }: {
       }}>
         {loading ? 'Buscando...' : 'Gerar'}
       </button>
+    </div>
+  )
+}
+
+// ─── PANORAMA DO MÊS ─────────────────────────────────────────────────────────
+function RelPanoramaMes() {
+  const supabase = createClient()
+  const [dados, setDados] = useState<{
+    receberRecebido: number; receberPendente: number; receberAtrasado: number; receberTotal: number
+    pagarPago: number; pagarPendente: number; pagarAtrasado: number; pagarTotal: number
+    jurosRecebidos: number
+  } | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => { buscar() }, [])
+
+  async function buscar() {
+    setLoading(true)
+    try {
+      const hoje = new Date()
+      const hojeISO = toISODate(hoje)
+      const ini = toISODate(new Date(hoje.getFullYear(), hoje.getMonth(), 1))
+      const fim = toISODate(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0))
+
+      const [{ data: pags }, { data: desps }] = await Promise.all([
+        supabase.from('pagamentos').select('valor, valor_pago, juros, status, data_vencimento')
+          .gte('mes_referencia', ini).lte('mes_referencia', fim),
+        supabase.from('despesas').select('valor_total, parcelas, status, data_vencimento')
+          .gte('mes_inicio', ini).lte('mes_inicio', fim),
+      ])
+
+      const pagsArr = pags || []
+      const despsArr = desps || []
+      const vm = (d: { valor_total: number; parcelas: number }) => Number(d.valor_total) / (d.parcelas || 1)
+
+      const receberRecebido = pagsArr.filter(p => p.status === 'pago').reduce((s, p) => s + Number(p.valor_pago ?? p.valor), 0)
+      const jurosRecebidos = pagsArr.filter(p => p.status === 'pago' && p.juros).reduce((s, p) => s + Number(p.juros), 0)
+      const receberAtrasado = pagsArr.filter(p => p.status === 'atrasado' || (p.status === 'pendente' && p.data_vencimento && p.data_vencimento < hojeISO)).reduce((s, p) => s + Number(p.valor), 0)
+      const receberPendente = pagsArr.filter(p => p.status === 'pendente' && (!p.data_vencimento || p.data_vencimento >= hojeISO)).reduce((s, p) => s + Number(p.valor), 0)
+      const receberTotal = receberRecebido + receberAtrasado + receberPendente
+
+      const pagarPago = despsArr.filter(d => d.status === 'pago').reduce((s, d) => s + vm(d), 0)
+      const pagarAtrasado = despsArr.filter(d => d.status !== 'pago' && d.data_vencimento && d.data_vencimento < hojeISO).reduce((s, d) => s + vm(d), 0)
+      const pagarPendente = despsArr.filter(d => d.status !== 'pago' && (!d.data_vencimento || d.data_vencimento >= hojeISO)).reduce((s, d) => s + vm(d), 0)
+      const pagarTotal = pagarPago + pagarAtrasado + pagarPendente
+
+      setDados({ receberRecebido, receberPendente, receberAtrasado, receberTotal, pagarPago, pagarPendente, pagarAtrasado, pagarTotal, jurosRecebidos })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--ink-muted)', fontSize: '13px' }}>Carregando...</div>
+  if (!dados) return null
+
+  const saldo = dados.receberRecebido - dados.pagarPago
+  const mesLabel = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+
+  const card = (label: string, valor: number, cor: string, bg: string) => (
+    <div style={{ background: bg, border: `1px solid ${cor}22`, borderRadius: '8px', padding: '16px 18px' }}>
+      <div style={{ fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: cor, marginBottom: '4px' }}>{label}</div>
+      <div style={{ fontFamily: 'Fraunces, serif', fontSize: '22px', fontWeight: 700, color: cor }}>{fmt(valor)}</div>
+    </div>
+  )
+
+  const barra = (pago: number, pendente: number, atrasado: number, total: number) => total > 0 && (
+    <div style={{ height: '6px', borderRadius: '3px', background: 'var(--line-soft)', overflow: 'hidden', display: 'flex', margin: '8px 0' }}>
+      <div style={{ width: `${(pago / total) * 100}%`, background: 'var(--green)' }} />
+      <div style={{ width: `${(pendente / total) * 100}%`, background: '#f0c060' }} />
+      <div style={{ width: `${(atrasado / total) * 100}%`, background: 'var(--accent)' }} />
+    </div>
+  )
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
+        <span style={{ fontSize: '13px', color: 'var(--ink-muted)', textTransform: 'capitalize' }}>{mesLabel}</span>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '11px', color: 'var(--ink-muted)' }}>Saldo realizado</div>
+          <div style={{ fontFamily: 'Fraunces, serif', fontSize: '24px', fontWeight: 700, color: saldo >= 0 ? 'var(--green)' : 'var(--accent)' }}>
+            {saldo >= 0 ? '+' : ''}{fmt(saldo)}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+        <div>
+          <div style={{ fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: 'var(--green)', marginBottom: '10px' }}>Contas a Receber</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            {card('Recebido', dados.receberRecebido, '#2d6a4f', '#e8f0e4')}
+            {card('Pendente', dados.receberPendente, '#8a5a00', '#fff4e0')}
+            {card('Atrasado', dados.receberAtrasado, '#c44536', '#f5d6cd')}
+          </div>
+          {barra(dados.receberRecebido, dados.receberPendente, dados.receberAtrasado, dados.receberTotal)}
+          <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Total previsto: <strong style={{ color: 'var(--ink)' }}>{fmt(dados.receberTotal)}</strong>
+            {dados.jurosRecebidos > 0 && <span style={{ marginLeft: '8px', color: '#8a5a00' }}>+{fmt(dados.jurosRecebidos)} juros</span>}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: '#c44536', marginBottom: '10px' }}>Contas a Pagar</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            {card('Pago', dados.pagarPago, '#2d6a4f', '#e8f0e4')}
+            {card('Pendente', dados.pagarPendente, '#8a5a00', '#fff4e0')}
+            {card('Atrasado', dados.pagarAtrasado, '#c44536', '#f5d6cd')}
+          </div>
+          {barra(dados.pagarPago, dados.pagarPendente, dados.pagarAtrasado, dados.pagarTotal)}
+          <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Total do mês: <strong style={{ color: 'var(--ink)' }}>{fmt(dados.pagarTotal)}</strong></div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -737,7 +857,7 @@ function Empty({ texto }: { texto: string }) {
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function RelatorioPage() {
   const supabase = createClient()
-  const [ativo, setAtivo] = useState<RelatorioTipo>('historico_cliente')
+  const [ativo, setAtivo] = useState<RelatorioTipo>('panorama_mes')
   const [userEmail, setUserEmail] = useState<string | undefined>()
 
   useEffect(() => {
@@ -747,6 +867,7 @@ export default function RelatorioPage() {
   const relAtivo = RELATORIOS.find(r => r.id === ativo)!
 
   const CONTEUDO: Record<RelatorioTipo, React.ReactNode> = {
+    panorama_mes: <RelPanoramaMes />,
     fluxo_mensal: <RelFluxoMensal />,
     historico_cliente: <RelHistoricoCliente />,
     a_receber: <RelAReceber />,
