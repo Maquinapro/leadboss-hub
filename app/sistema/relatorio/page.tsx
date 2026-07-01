@@ -72,11 +72,11 @@ export default function RelatorioPage() {
           .order('data_pagamento', { ascending: true }),
         supabase
           .from('despesas')
-          .select('id, data_pagamento, descricao, categoria, forma_pagamento, valor, conta_corrente:contas_correntes(nome)')
+          .select('id, data_pagamento, data_vencimento, descricao, categoria, forma_pagamento, valor, conta_corrente:contas_correntes(nome)')
           .eq('status', 'pago')
-          .gte('data_pagamento', dataInicio)
-          .lte('data_pagamento', dataFim)
-          .order('data_pagamento', { ascending: true }),
+          .gte('data_vencimento', dataInicio)
+          .lte('data_vencimento', dataFim)
+          .order('data_vencimento', { ascending: true }),
       ])
 
       setEntradas(
@@ -95,7 +95,7 @@ export default function RelatorioPage() {
       setSaidas(
         (desps || []).map((d: any) => ({
           id: d.id,
-          data: d.data_pagamento,
+          data: d.data_pagamento || d.data_vencimento,
           descricao: d.descricao,
           categoria: d.categoria,
           forma_pagamento: d.forma_pagamento,
@@ -171,7 +171,7 @@ export default function RelatorioPage() {
         {/* Atalhos rápidos */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           {[
-            { label: 'Este mês', fn: () => { const h = new Date(); setDataInicio(toISODate(new Date(h.getFullYear(), h.getMonth(), 1))); setDataFim(toISODate(h)) } },
+            { label: 'Este mês', fn: () => { const h = new Date(); setDataInicio(toISODate(new Date(h.getFullYear(), h.getMonth(), 1))); setDataFim(toISODate(new Date(h.getFullYear(), h.getMonth() + 1, 0))) } },
             { label: 'Mês passado', fn: () => { const h = new Date(); const m = new Date(h.getFullYear(), h.getMonth() - 1, 1); const mf = new Date(h.getFullYear(), h.getMonth(), 0); setDataInicio(toISODate(m)); setDataFim(toISODate(mf)) } },
             { label: 'Este ano', fn: () => { const h = new Date(); setDataInicio(`${h.getFullYear()}-01-01`); setDataFim(toISODate(h)) } },
           ].map(({ label, fn }) => (
