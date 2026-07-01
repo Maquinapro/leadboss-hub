@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import SistemaNav from '@/components/SistemaNav'
 import { createClient } from '@/lib/supabase-client'
+import { gerarRelatorioCampanha } from '@/components/RelatorioCampanhaPDF'
 
 type Cliente = {
   id: string
@@ -85,6 +86,24 @@ export default function CampanhasPage() {
   const [mesAtual, setMesAtual] = useState(() => getFirstDayOfMonth(hoje.getFullYear(), hoje.getMonth()))
 
   const [form, setForm] = useState(formInicial)
+  const [gerandoRelatorio, setGerandoRelatorio] = useState(false)
+  const [clienteRelatorio, setClienteRelatorio] = useState<string | null>(null)
+
+  async function handleGerarRelatorio(clienteId: string, clienteNome: string) {
+    setGerandoRelatorio(true)
+    setClienteRelatorio(clienteId)
+    try {
+      const campsDoCli = campanhas.filter((c) => c.cliente_id === clienteId)
+      await gerarRelatorioCampanha({
+        clienteNome,
+        mesReferencia: toISODate(mesAtual),
+        campanhas: campsDoCli,
+      })
+    } finally {
+      setGerandoRelatorio(false)
+      setClienteRelatorio(null)
+    }
+  }
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -349,9 +368,49 @@ export default function CampanhasPage() {
             Clique em "Lançar KPIs do mês" para registrar os números das campanhas.
           </p>
         </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
-          {campanhas.map((c) => {
+      ) : (() => {
+        // Agrupar por cliente
+        const clienteIds = [...new Set(campanhas.map(c => c.cliente_id))]
+        const grupos = clienteIds.map(id => ({
+          id,
+          nome: campanhas.find(c => c.cliente_id === id)?.cliente?.nome || '—',
+          campanhas: campanhas.filter(c => c.cliente_id === id),
+        }))
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {grupos.map((grupo) => (
+              <div key={grupo.id}>
+                {/* Cabeçalho do grupo */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div>
+                    <div className="font-serif" style={{ fontSize: '17px', fontWeight: 600, color: 'var(--ink)' }}>{grupo.nome}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>{grupo.campanhas.length} plataforma{grupo.campanhas.length > 1 ? 's' : ''}</div>
+                  </div>
+                  <button
+                    onClick={() => handleGerarRelatorio(grupo.id, grupo.nome)}
+                    disabled={gerandoRelatorio && clienteRelatorio === grupo.id}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '7px',
+                      padding: '9px 16px', borderRadius: '4px', fontSize: '13px', fontWeight: 500,
+                      border: '1px solid var(--line)', background: 'var(--bg-card)',
+                      cursor: 'pointer', fontFamily: 'inherit', color: 'var(--ink-soft)',
+                      opacity: gerandoRelatorio && clienteRelatorio === grupo.id ? 0.6 : 1,
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                      <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    {gerandoRelatorio && clienteRelatorio === grupo.id ? 'Gerando PDF...' : 'Relatório PDF'}
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+          {grupo.campanhas.map((c) => {
             const cplNum = c.cpl ? Number(c.cpl) : null
             const metaNum = c.meta_cpl ? Number(c.meta_cpl) : null
             const invest = Number(c.investimento || 0)
@@ -441,10 +500,14 @@ export default function CampanhasPage() {
                   {c.fechamentos > 0 && <MiniMetric label="Fechou" value={String(c.fechamentos)} />}
                 </div>
               </div>
-            )
-          })}
-        </div>
-      )}
+              )
+            })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
 
       {/* Modal de lançamento/edição */}
       {modalOpen && (
