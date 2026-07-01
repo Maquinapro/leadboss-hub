@@ -88,29 +88,35 @@ export default function DashboardToDo() {
   useEffect(() => { loadFinanceiro() }, [mesAtual])
 
   async function loadData() {
-    const [{ data: atividadesData }, { data: clientesData }] = await Promise.all([
-      supabase
-        .from('atividades')
-        .select('*, clientes (nome)')
-        .eq('concluida', false)
-        .order('data_evento', { ascending: true, nullsFirst: false }),
-      supabase
-        .from('clientes')
-        .select('id, nome')
-        .eq('status', 'ativo')
-        .order('nome'),
-    ])
-    if (atividadesData) {
-      setAtividades(atividadesData.map((a: any) => ({
-        ...a,
-        cliente_nome: a.clientes?.nome || 'Sem cliente',
-      })))
+    try {
+      const [{ data: atividadesData }, { data: clientesData }] = await Promise.all([
+        supabase
+          .from('atividades')
+          .select('*, clientes (nome)')
+          .eq('concluida', false)
+          .order('data_evento', { ascending: true, nullsFirst: false }),
+        supabase
+          .from('clientes')
+          .select('id, nome')
+          .eq('status', 'ativo')
+          .order('nome'),
+      ])
+      if (atividadesData) {
+        setAtividades(atividadesData.map((a: any) => ({
+          ...a,
+          cliente_nome: a.clientes?.nome || 'Sem cliente',
+        })))
+      }
+      if (clientesData) setClientes(clientesData)
+    } catch (e) {
+      console.error('loadData error:', e)
+    } finally {
+      setLoading(false)
     }
-    if (clientesData) setClientes(clientesData)
-    setLoading(false)
   }
 
   async function loadFinanceiro() {
+    try {
     const ano = mesAtual.getFullYear()
     const mes = mesAtual.getMonth()
     const inicioMes = `${ano}-${String(mes + 1).padStart(2, '0')}-01`
@@ -159,6 +165,9 @@ export default function DashboardToDo() {
     }
 
     setEventosFinanceiros(eventos)
+    } catch (e) {
+      console.error('loadFinanceiro error:', e)
+    }
   }
 
   async function handleToggle(id: string) {
