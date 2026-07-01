@@ -373,12 +373,13 @@ function RelAPagar() {
     try {
       const { data, error } = await supabase
         .from('despesas')
-        .select('id, mes_inicio, data_vencimento, descricao, categoria, valor, status')
+        .select('id, mes_inicio, data_vencimento, descricao, categoria, valor_total, parcelas, status')
         .eq('status', 'pendente')
         .lte('mes_inicio', fim)
         .order('mes_inicio', { ascending: true })
       if (error) setQueryErro(error.message)
-      setRows(data || [])
+      // valor mensal = valor_total / parcelas
+      setRows((data || []).map(r => ({ ...r, valor: Number(r.valor_total) / (r.parcelas || 1) })))
     } catch (e: any) {
       setQueryErro(e?.message || 'Erro desconhecido')
     } finally {
@@ -446,12 +447,12 @@ function RelPagas() {
     try {
       const { data } = await supabase
         .from('despesas')
-        .select('id, mes_inicio, data_vencimento, data_pagamento, descricao, categoria, valor, conta_corrente:contas_correntes(nome)')
+        .select('id, mes_inicio, data_vencimento, data_pagamento, descricao, categoria, valor_total, parcelas, conta_corrente:contas_correntes(nome)')
         .eq('status', 'pago')
         .gte('mes_inicio', inicio)
         .lte('mes_inicio', fim)
         .order('mes_inicio', { ascending: true })
-      setRows(data || [])
+      setRows((data || []).map(r => ({ ...r, valor: Number(r.valor_total) / (r.parcelas || 1) })))
     } finally {
       setBuscou(true)
       setLoading(false)
