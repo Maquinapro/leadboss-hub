@@ -11,9 +11,19 @@ const CAT_LABELS: { [key: string]: string } = {
   saude: 'Saúde', pets: 'Pets', pessoal: 'Pessoal', emprestimo: 'Empréstimo', outros: 'Outros',
 }
 
-type RelatorioTipo = 'historico_cliente' | 'a_pagar' | 'pagas' | 'a_receber' | 'recebidas'
+type RelatorioTipo = 'fluxo_mensal' | 'historico_cliente' | 'a_pagar' | 'pagas' | 'a_receber' | 'recebidas'
 
 const RELATORIOS: { id: RelatorioTipo; label: string; desc: string; icon: React.ReactNode }[] = [
+  {
+    id: 'fluxo_mensal',
+    label: 'Fluxo mensal',
+    desc: 'Entradas vs saídas dos últimos meses',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    ),
+  },
   {
     id: 'historico_cliente',
     label: 'Histórico do cliente',
@@ -136,6 +146,150 @@ function FiltroData({ inicio, fim, setInicio, setFim, onBuscar, loading }: {
       }}>
         {loading ? 'Buscando...' : 'Gerar'}
       </button>
+    </div>
+  )
+}
+
+// ─── FLUXO MENSAL ────────────────────────────────────────────────────────────
+function RelFluxoMensal() {
+  const supabase = createClient()
+  const [meses, setMeses] = useState(6)
+  const [dados, setDados] = useState<{ mes: string; entradas: number; saidas: number; saldo: number }[]>([])
+  const [loading, setLoading] = useState(false)
+  const [buscou, setBuscou] = useState(false)
+
+  async function buscar() {
+    setLoading(true)
+    try {
+      const hoje = new Date()
+      const periodos: { label: string; ini: string; fim: string }[] = []
+      for (let i = meses - 1; i >= 0; i--) {
+        const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1)
+        const ini = toISODate(d)
+        const fim = toISODate(new Date(d.getFullYear(), d.getMonth() + 1, 0))
+        const label = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })
+        periodos.push({ label, ini, fim })
+      }
+
+      const iniGeral = periodos[0].ini
+      const fimGeral = periodos[periodos.length - 1].fim
+
+      const [{ data: pags }, { data: desps }] = await Promise.all([
+        supabase
+          .from('pagamentos')
+          .select('mes_referencia, valor, valor_pago, status')
+          .gte('mes_referencia', iniGeral)
+          .lte('mes_referencia', fimGeral),
+        supabase
+          .from('despesas')
+          .select('mes_inicio, valor_total, parcelas, status')
+          .gte('mes_inicio', iniGeral)
+          .lte('mes_inicio', fimGeral),
+      ])
+
+      const resultado = periodos.map(({ label, ini, fim }) => {
+        const entradas = (pags || [])
+          .filter(p => p.mes_referencia >= ini && p.mes_referencia <= fim && p.status === 'pago')
+          .reduce((s, p) => s + Number(p.valor_pago ?? p.valor), 0)
+        const saidas = (desps || [])
+          .filter(d => d.mes_inicio >= ini && d.mes_inicio <= fim && d.status === 'pago')
+          .reduce((s, d) => s + Number(d.valor_total) / (d.parcelas || 1), 0)
+        return { mes: label, entradas, saidas, saldo: entradas - saidas }
+      })
+
+      setDados(resultado)
+    } finally {
+      setBuscou(true)
+      setLoading(false)
+    }
+  }
+
+  const maxVal = Math.max(...dados.map(d => Math.max(d.entradas, d.saidas)), 1)
+  const totalEntradas = dados.reduce((s, d) => s + d.entradas, 0)
+  const totalSaidas = dados.reduce((s, d) => s + d.saidas, 0)
+  const totalSaldo = totalEntradas - totalSaidas
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: '11px', color: 'var(--ink-muted)', fontWeight: 600, marginBottom: '5px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Período</div>
+          <select value={meses} onChange={e => setMeses(Number(e.target.value))} style={{
+            padding: '9px 12px', border: '1px solid var(--line)', borderRadius: '4px',
+            fontSize: '14px', color: 'var(--ink)', background: 'var(--bg)', fontFamily: 'inherit', cursor: 'pointer',
+          }}>
+            <option value={3}>Últimos 3 meses</option>
+            <option value={6}>Últimos 6 meses</option>
+            <option value={12}>Últimos 12 meses</option>
+          </select>
+        </div>
+        <button onClick={buscar} disabled={loading} style={{
+          padding: '9px 20px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
+          border: 'none', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
+          fontFamily: 'inherit', opacity: loading ? 0.5 : 1,
+        }}>
+          {loading ? 'Buscando...' : 'Gerar'}
+        </button>
+      </div>
+
+      {buscou && dados.length > 0 && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
+            <SummaryCard label="Total entradas" value={fmt(totalEntradas)} color="#2d6a4f" />
+            <SummaryCard label="Total saídas" value={fmt(totalSaidas)} color="#c44536" />
+            <SummaryCard label="Saldo do período" value={fmt(totalSaldo)} color={totalSaldo >= 0 ? '#2d6a4f' : '#c44536'} />
+          </div>
+
+          {/* Gráfico de barras manual */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '8px', padding: '20px 24px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)', fontWeight: 600, marginBottom: '16px' }}>
+              Entradas vs Saídas por mês
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '160px' }}>
+              {dados.map(d => (
+                <div key={d.mes} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', gap: '4px' }}>
+                  <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end', gap: '3px', justifyContent: 'center' }}>
+                    <div title={`Entradas: ${fmt(d.entradas)}`} style={{
+                      width: '40%', background: '#2d6a4f', borderRadius: '3px 3px 0 0',
+                      height: `${Math.max((d.entradas / maxVal) * 100, d.entradas > 0 ? 4 : 0)}%`,
+                      opacity: 0.85, transition: 'height 0.3s',
+                    }} />
+                    <div title={`Saídas: ${fmt(d.saidas)}`} style={{
+                      width: '40%', background: '#c44536', borderRadius: '3px 3px 0 0',
+                      height: `${Math.max((d.saidas / maxVal) * 100, d.saidas > 0 ? 4 : 0)}%`,
+                      opacity: 0.75, transition: 'height 0.3s',
+                    }} />
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--ink-muted)', textAlign: 'center', whiteSpace: 'nowrap' }}>{d.mes}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--ink-muted)' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#2d6a4f', display: 'inline-block' }} />
+                Entradas
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--ink-muted)' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#c44536', display: 'inline-block' }} />
+                Saídas
+              </span>
+            </div>
+          </div>
+
+          {/* Tabela resumo */}
+          <Table
+            headers={['Mês', 'Entradas', 'Saídas', 'Saldo']}
+            rows={dados.map(d => [
+              <strong key="m">{d.mes}</strong>,
+              <span key="e" style={{ color: '#2d6a4f', fontWeight: 600 }}>{fmt(d.entradas)}</span>,
+              <span key="s" style={{ color: '#c44536', fontWeight: 600 }}>{fmt(d.saidas)}</span>,
+              <span key="sl" style={{ color: d.saldo >= 0 ? '#2d6a4f' : '#c44536', fontWeight: 700 }}>
+                {d.saldo >= 0 ? '+' : ''}{fmt(d.saldo)}
+              </span>,
+            ])}
+          />
+        </>
+      )}
     </div>
   )
 }
@@ -593,6 +747,7 @@ export default function RelatorioPage() {
   const relAtivo = RELATORIOS.find(r => r.id === ativo)!
 
   const CONTEUDO: Record<RelatorioTipo, React.ReactNode> = {
+    fluxo_mensal: <RelFluxoMensal />,
     historico_cliente: <RelHistoricoCliente />,
     a_receber: <RelAReceber />,
     recebidas: <RelRecebidas />,

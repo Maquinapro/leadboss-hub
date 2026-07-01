@@ -2,10 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-client'
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend,
-} from 'recharts'
-
 type Dados = {
   // Contas a receber
   receberTotal: number
@@ -24,28 +20,6 @@ function fmtMoeda(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 }
 
-const TOOLTIP_STYLE = {
-  background: 'var(--bg-card)',
-  border: '1px solid var(--line)',
-  borderRadius: '6px',
-  fontSize: '13px',
-  color: 'var(--ink)',
-}
-
-function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; fill: string }[]; label?: string }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{ ...TOOLTIP_STYLE, padding: '10px 14px', minWidth: '160px' }}>
-      <div style={{ fontWeight: 600, marginBottom: '6px', color: 'var(--ink)' }}>{label}</div>
-      {payload.map((p) => (
-        <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', marginBottom: '2px' }}>
-          <span style={{ color: 'var(--ink-muted)' }}>{p.name}</span>
-          <span style={{ fontWeight: 600, color: p.fill }}>{fmtMoeda(p.value)}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 export default function PanoramaMes() {
   const supabase = createClient()
@@ -95,21 +69,6 @@ export default function PanoramaMes() {
   }, [])
 
   if (!dados) return <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-muted)', fontSize: '13px' }}>Carregando panorama...</div>
-
-  const barData = [
-    {
-      name: 'Contas a Receber',
-      'Recebido': dados.receberRecebido,
-      'Pendente': dados.receberPendente,
-      'Atrasado': dados.receberAtrasado,
-    },
-    {
-      name: 'Contas a Pagar',
-      'Pago': dados.pagarPago,
-      'Pendente': dados.pagarPendente,
-      'Atrasado': dados.pagarAtrasado,
-    },
-  ]
 
   const saldo = dados.receberRecebido - dados.pagarPago
   const isPositivo = saldo >= 0
@@ -225,23 +184,6 @@ export default function PanoramaMes() {
         </div>
       </div>
 
-      {/* Gráfico de barras */}
-      <div style={{ height: '200px' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={barData} barGap={4} barCategoryGap="35%">
-            <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'var(--ink-muted)' }} axisLine={false} tickLine={false} />
-            <YAxis tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: 'var(--ink-muted)' }} axisLine={false} tickLine={false} width={52} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--line-soft)' }} />
-            <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
-            <Bar dataKey="Recebido" stackId="receber" fill="var(--green)" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="Pendente" stackId="receber" fill="#f0c060" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="Atrasado" stackId="receber" fill="var(--accent)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Pago" stackId="pagar" fill="var(--green)" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="Pendente" stackId="pagar" fill="#f0c060" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="Atrasado" stackId="pagar" fill="var(--accent)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
     </div>
   )
 }
