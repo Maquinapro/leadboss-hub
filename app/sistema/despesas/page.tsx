@@ -159,6 +159,7 @@ export default function DespesasPage() {
   })
   const [savingConta, setSavingConta] = useState(false)
   const [showContaForm, setShowContaForm] = useState(false)
+  const [errorConta, setErrorConta] = useState('')
 
   // ── Load ────────────────────────────────────────────────
 
@@ -328,14 +329,24 @@ export default function DespesasPage() {
   async function handleAddConta() {
     if (!contaForm.nome || !contaForm.banco) return
     setSavingConta(true)
-    await supabase.from('contas_correntes').insert({
+    setErrorConta('')
+
+    const { error: err } = await supabase.from('contas_correntes').insert({
       nome: contaForm.nome, banco: contaForm.banco,
       agencia: contaForm.agencia || null, conta: contaForm.conta || null,
       digito: contaForm.digito || null, pix: contaForm.pix || null,
       tipo: contaForm.tipo,
     })
+
+    if (err) {
+      setErrorConta('Erro ao salvar: ' + err.message)
+      setSavingConta(false)
+      return
+    }
+
     setContaForm({ nome: '', banco: '', agencia: '', conta: '', digito: '', pix: '', tipo: 'empresa' })
-    setShowContaForm(false); setSavingConta(false)
+    setShowContaForm(false)
+    setSavingConta(false)
     const { data } = await supabase.from('contas_correntes').select('*').eq('ativo', true).order('nome')
     if (data) setContasCorrentes(data as ContaCorrente[])
   }
@@ -831,6 +842,12 @@ export default function DespesasPage() {
                   <input type="text" value={contaForm.pix} onChange={(e) => setContaForm({ ...contaForm, pix: e.target.value })} style={inputStyle} placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória" />
                 </div>
               </div>
+
+              {errorConta && (
+                <div style={{ background: 'var(--accent-soft)', color: 'var(--accent)', padding: '10px 14px', borderRadius: '4px', fontSize: '13px', marginBottom: '12px' }}>
+                  {errorConta}
+                </div>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={handleAddConta} disabled={savingConta || !contaForm.nome || !contaForm.banco} style={{
