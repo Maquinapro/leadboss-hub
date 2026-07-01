@@ -283,6 +283,7 @@ export default function DespesasPage() {
     const { error: err } = await supabase.from('despesas').insert({
       descricao: form.descricao,
       categoria: form.categoria,
+      origem: 'agencia',
       forma_pagamento: form.forma_pagamento,
       cartao_id: form.forma_pagamento === 'cartao' && form.cartao_id ? form.cartao_id : null,
       valor_total: Number(form.valor_total),
