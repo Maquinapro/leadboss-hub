@@ -215,7 +215,7 @@ export default function DespesasPage() {
 
     if (despesasData) {
       const doMes = (despesasData as Despesa[]).filter((d) => {
-        const inicio = new Date(d.mes_inicio)
+        const inicio = new Date(d.mes_inicio + 'T00:00:00')
         const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
         const atual = new Date(ano, mes, 1)
         return inicio <= atual && atual <= fim
