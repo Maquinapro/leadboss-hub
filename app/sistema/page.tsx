@@ -4,6 +4,7 @@ import Header from '@/components/Header'
 import DashboardToDo from '@/components/DashboardToDo'
 import DashboardStats from '@/components/DashboardStats'
 import SistemaNav from '@/components/SistemaNav'
+import PanoramaMes from '@/components/PanoramaMes'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -52,6 +53,8 @@ export default async function DashboardPage() {
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 20px 80px' }}>
       <Header userEmail={user.email} />
       <SistemaNav />
+
+      <PanoramaMes />
 
       <DashboardStats
         totalClientesAtivos={totalClientesAtivos}
