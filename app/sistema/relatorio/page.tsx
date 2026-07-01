@@ -160,16 +160,19 @@ function RelHistoricoCliente() {
   async function buscar() {
     if (!clienteId) return
     setLoading(true)
-    const { data } = await supabase
-      .from('pagamentos')
-      .select('id, data_vencimento, data_pagamento, valor, valor_pago, status, metodo_pagamento, observacoes, contrato:contratos(descricao)')
-      .eq('cliente_id', clienteId)
-      .gte('data_vencimento', inicio)
-      .lte('data_vencimento', fim)
-      .order('data_vencimento', { ascending: true })
-    setRows(data || [])
-    setBuscou(true)
-    setLoading(false)
+    try {
+      const { data } = await supabase
+        .from('pagamentos')
+        .select('id, data_vencimento, data_pagamento, valor, valor_pago, status, metodo_pagamento, observacoes, contrato:contratos(descricao)')
+        .eq('cliente_id', clienteId)
+        .gte('data_vencimento', inicio)
+        .lte('data_vencimento', fim)
+        .order('data_vencimento', { ascending: true })
+      setRows(data || [])
+    } finally {
+      setBuscou(true)
+      setLoading(false)
+    }
   }
 
   const total = rows.reduce((s, r) => s + (r.valor_pago ?? r.valor), 0)
@@ -241,16 +244,19 @@ function RelAReceber() {
 
   async function buscar() {
     setLoading(true)
-    const { data } = await supabase
-      .from('pagamentos')
-      .select('id, data_vencimento, valor, status, cliente:clientes(nome), contrato:contratos(descricao)')
-      .in('status', ['pendente', 'atrasado'])
-      .gte('data_vencimento', inicio)
-      .lte('data_vencimento', fim)
-      .order('data_vencimento', { ascending: true })
-    setRows(data || [])
-    setBuscou(true)
-    setLoading(false)
+    try {
+      const { data } = await supabase
+        .from('pagamentos')
+        .select('id, data_vencimento, valor, status, cliente:clientes(nome), contrato:contratos(descricao)')
+        .in('status', ['pendente', 'atrasado'])
+        .gte('data_vencimento', inicio)
+        .lte('data_vencimento', fim)
+        .order('data_vencimento', { ascending: true })
+      setRows(data || [])
+    } finally {
+      setBuscou(true)
+      setLoading(false)
+    }
   }
 
   const total = rows.reduce((s, r) => s + r.valor, 0)
@@ -300,16 +306,19 @@ function RelRecebidas() {
 
   async function buscar() {
     setLoading(true)
-    const { data } = await supabase
-      .from('pagamentos')
-      .select('id, data_vencimento, data_pagamento, valor, valor_pago, juros, metodo_pagamento, cliente:clientes(nome), contrato:contratos(descricao)')
-      .eq('status', 'pago')
-      .gte('data_pagamento', inicio)
-      .lte('data_pagamento', fim)
-      .order('data_pagamento', { ascending: true })
-    setRows(data || [])
-    setBuscou(true)
-    setLoading(false)
+    try {
+      const { data } = await supabase
+        .from('pagamentos')
+        .select('id, data_vencimento, data_pagamento, valor, valor_pago, juros, metodo_pagamento, cliente:clientes(nome), contrato:contratos(descricao)')
+        .eq('status', 'pago')
+        .gte('data_pagamento', inicio)
+        .lte('data_pagamento', fim)
+        .order('data_pagamento', { ascending: true })
+      setRows(data || [])
+    } finally {
+      setBuscou(true)
+      setLoading(false)
+    }
   }
 
   const totalRecebido = rows.reduce((s, r) => s + (r.valor_pago ?? r.valor), 0)
@@ -359,17 +368,18 @@ function RelAPagar() {
 
   async function buscar() {
     setLoading(true)
-    // Mostra tudo pendente cadastrado até o fim do período escolhido
-    const { data, error } = await supabase
-      .from('despesas')
-      .select('*')
-      .eq('status', 'pendente')
-      .lte('mes_inicio', fim)
-      .order('mes_inicio', { ascending: true })
-    console.log('a_pagar result:', data, error)
-    setRows(data || [])
-    setBuscou(true)
-    setLoading(false)
+    try {
+      const { data } = await supabase
+        .from('despesas')
+        .select('id, mes_inicio, data_vencimento, descricao, categoria, valor, status')
+        .eq('status', 'pendente')
+        .lte('mes_inicio', fim)
+        .order('mes_inicio', { ascending: true })
+      setRows(data || [])
+    } finally {
+      setBuscou(true)
+      setLoading(false)
+    }
   }
 
   const total = rows.reduce((s, r) => s + r.valor, 0)
@@ -423,16 +433,19 @@ function RelPagas() {
 
   async function buscar() {
     setLoading(true)
-    const { data } = await supabase
-      .from('despesas')
-      .select('id, mes_inicio, data_vencimento, data_pagamento, descricao, categoria, forma_pagamento, valor, conta_corrente:contas_correntes(nome)')
-      .eq('status', 'pago')
-      .gte('mes_inicio', inicio)
-      .lte('mes_inicio', fim)
-      .order('mes_inicio', { ascending: true })
-    setRows(data || [])
-    setBuscou(true)
-    setLoading(false)
+    try {
+      const { data } = await supabase
+        .from('despesas')
+        .select('id, mes_inicio, data_vencimento, data_pagamento, descricao, categoria, valor, conta_corrente:contas_correntes(nome)')
+        .eq('status', 'pago')
+        .gte('mes_inicio', inicio)
+        .lte('mes_inicio', fim)
+        .order('mes_inicio', { ascending: true })
+      setRows(data || [])
+    } finally {
+      setBuscou(true)
+      setLoading(false)
+    }
   }
 
   const total = rows.reduce((s, r) => s + r.valor, 0)
