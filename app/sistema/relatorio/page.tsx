@@ -365,17 +365,22 @@ function RelAPagar() {
   const [rows, setRows] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [buscou, setBuscou] = useState(false)
+  const [queryErro, setQueryErro] = useState<string | null>(null)
 
   async function buscar() {
     setLoading(true)
+    setQueryErro(null)
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('despesas')
         .select('id, mes_inicio, data_vencimento, descricao, categoria, valor, status')
         .eq('status', 'pendente')
         .lte('mes_inicio', fim)
         .order('mes_inicio', { ascending: true })
+      if (error) setQueryErro(error.message)
       setRows(data || [])
+    } catch (e: any) {
+      setQueryErro(e?.message || 'Erro desconhecido')
     } finally {
       setBuscou(true)
       setLoading(false)
@@ -389,6 +394,11 @@ function RelAPagar() {
   return (
     <div>
       <FiltroData inicio={inicio} fim={fim} setInicio={setInicio} setFim={setFim} onBuscar={buscar} loading={loading} />
+      {queryErro && (
+        <div style={{ background: '#fce8e6', border: '1px solid #f5c2be', borderRadius: '6px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#c44536', fontWeight: 500 }}>
+          Erro na consulta: {queryErro}
+        </div>
+      )}
       {buscou && (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
