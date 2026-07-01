@@ -70,6 +70,7 @@ export default function PagamentosPage() {
   const supabase = createClient()
 
   const [contratos, setContratos] = useState<ContratoAtivo[]>([])
+  const [todosClientes, setTodosClientes] = useState<{ id: string; nome: string }[]>([])
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([])
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
@@ -81,14 +82,17 @@ export default function PagamentosPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  // Modal fatura avulsa
+  // Modal receita avulsa
   const [modalAvulsaOpen, setModalAvulsaOpen] = useState(false)
   const [savingAvulsa, setSavingAvulsa] = useState(false)
+  const [avulsaTipo, setAvulsaTipo] = useState<'contrato' | 'livre'>('contrato')
   const [avulsaForm, setAvulsaForm] = useState({
     contrato_id: '',
+    cliente_id_livre: '',
+    descricao: '',
     valor: '',
     data_vencimento: toISODate(new Date()),
-    ja_pago: false,
+    ja_pago: true,
     data_pagamento: toISODate(new Date()),
     metodo_pagamento: 'PIX',
     observacoes: '',
@@ -115,7 +119,7 @@ export default function PagamentosPage() {
 
     const mesIni = toISODate(mesAtual)
 
-    const [{ data: clientesData }, { data: pagamentosData }] = await Promise.all([
+    const [{ data: clientesData }, { data: pagamentosData }, { data: clientesAll }] = await Promise.all([
       supabase.from('contratos')
         .select('id, cliente_id, descricao, valor_mensal, dia_vencimento, clientes!inner(nome, status)')
         .eq('ativo', true)
@@ -125,7 +129,10 @@ export default function PagamentosPage() {
         .select('*, cliente:clientes (nome, email, telefone), contrato:contratos (descricao)')
         .eq('mes_referencia', mesIni)
         .order('data_vencimento'),
+      supabase.from('clientes').select('id, nome').order('nome'),
     ])
+
+    if (clientesAll) setTodosClientes(clientesAll)
 
     if (clientesData) {
       setContratos(clientesData.map((c: any) => ({
@@ -219,31 +226,42 @@ export default function PagamentosPage() {
 
   async function gerarFaturaAvulsa(e: FormEvent) {
     e.preventDefault()
-    if (!avulsaForm.contrato_id || !avulsaForm.valor) return
+    if (!avulsaForm.valor) return
+    if (avulsaTipo === 'contrato' && !avulsaForm.contrato_id) return
+    if (avulsaTipo === 'livre' && (!avulsaForm.cliente_id_livre || !avulsaForm.descricao)) return
     setSavingAvulsa(true)
     setError('')
 
-    const contrato = contratos.find(c => c.id === avulsaForm.contrato_id)
-    if (!contrato) { setSavingAvulsa(false); return }
+    let clienteId: string
+    let contratoId: string | null = null
+
+    if (avulsaTipo === 'contrato') {
+      const contrato = contratos.find(c => c.id === avulsaForm.contrato_id)
+      if (!contrato) { setSavingAvulsa(false); return }
+      clienteId = contrato.cliente_id
+      contratoId = contrato.id
+    } else {
+      clienteId = avulsaForm.cliente_id_livre
+    }
 
     const mesIni = toISODate(mesAtual)
 
     const { error: insertError } = await supabase.from('pagamentos').insert({
-      cliente_id: contrato.cliente_id,
-      contrato_id: contrato.id,
+      cliente_id: clienteId,
+      contrato_id: contratoId,
       mes_referencia: mesIni,
       valor: Number(avulsaForm.valor),
       data_vencimento: avulsaForm.data_vencimento,
       status: avulsaForm.ja_pago ? 'pago' : 'pendente',
       data_pagamento: avulsaForm.ja_pago ? avulsaForm.data_pagamento : null,
       metodo_pagamento: avulsaForm.ja_pago ? avulsaForm.metodo_pagamento : null,
-      observacoes: avulsaForm.observacoes || null,
+      observacoes: [avulsaForm.descricao, avulsaForm.observacoes].filter(Boolean).join(' — ') || null,
     })
 
     if (insertError) { setError('Erro: ' + insertError.message); setSavingAvulsa(false); return }
 
     setModalAvulsaOpen(false)
-    setAvulsaForm({ contrato_id: '', valor: '', data_vencimento: toISODate(new Date()), ja_pago: false, data_pagamento: toISODate(new Date()), metodo_pagamento: 'PIX', observacoes: '' })
+    setAvulsaForm({ contrato_id: '', cliente_id_livre: '', descricao: '', valor: '', data_vencimento: toISODate(new Date()), ja_pago: true, data_pagamento: toISODate(new Date()), metodo_pagamento: 'PIX', observacoes: '' })
     setSavingAvulsa(false)
     await loadData()
   }
@@ -434,7 +452,7 @@ export default function PagamentosPage() {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" />
             </svg>
-            Fatura avulsa
+            + Receita avulsa
           </button>
           <button onClick={gerarFaturasDoMes} disabled={generating} style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -686,37 +704,82 @@ export default function PagamentosPage() {
             }}>×</button>
 
             <h3 className="font-serif" style={{ fontSize: '24px', fontWeight: 600, letterSpacing: '-0.01em', marginBottom: '4px' }}>
-              Fatura avulsa
+              Receita avulsa
             </h3>
-            <p style={{ fontSize: '13px', color: 'var(--ink-muted)', marginBottom: '24px' }}>
-              Gera uma fatura para um cliente específico em {mesLabel}.
+            <p style={{ fontSize: '13px', color: 'var(--ink-muted)', marginBottom: '20px' }}>
+              Serviço pontual, consultoria ou qualquer receita fora da mensalidade.
             </p>
 
-            <form onSubmit={gerarFaturaAvulsa}>
-              {/* Cliente */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Cliente *</label>
-                <select
-                  required
-                  value={avulsaForm.contrato_id}
-                  onChange={(e) => {
-                    const contrato = contratos.find(c => c.id === e.target.value)
-                    setAvulsaForm({
-                      ...avulsaForm,
-                      contrato_id: e.target.value,
-                      valor: contrato ? String(contrato.valor_mensal) : avulsaForm.valor,
-                    })
+            {/* Toggle tipo */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              {([['contrato', 'Cliente com contrato'], ['livre', 'Serviço avulso']] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => { setAvulsaTipo(val); setAvulsaForm(f => ({ ...f, contrato_id: '', cliente_id_livre: '', descricao: '', valor: '' })) }}
+                  style={{
+                    flex: 1, padding: '9px 14px', borderRadius: '4px', cursor: 'pointer',
+                    border: avulsaTipo === val ? '2px solid var(--ink)' : '1px solid var(--line)',
+                    background: avulsaTipo === val ? 'var(--ink)' : 'transparent',
+                    color: avulsaTipo === val ? 'var(--bg)' : 'var(--ink-muted)',
+                    fontSize: '12px', fontWeight: 600, fontFamily: 'inherit',
                   }}
-                  style={inputStyle}
-                >
-                  <option value="">Selecione o cliente...</option>
-                  {contratos.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.cliente_nome}{c.descricao ? ` — ${c.descricao}` : ''} ({formatMoeda(c.valor_mensal)}/mês)
-                    </option>
-                  ))}
-                </select>
-              </div>
+                >{label}</button>
+              ))}
+            </div>
+
+            <form onSubmit={gerarFaturaAvulsa}>
+              {/* Modo contrato */}
+              {avulsaTipo === 'contrato' && (
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={labelStyle}>Cliente (contrato ativo) *</label>
+                  <select
+                    value={avulsaForm.contrato_id}
+                    onChange={(e) => {
+                      const contrato = contratos.find(c => c.id === e.target.value)
+                      setAvulsaForm({ ...avulsaForm, contrato_id: e.target.value, cliente_id_livre: '', valor: contrato ? String(contrato.valor_mensal) : avulsaForm.valor })
+                    }}
+                    style={inputStyle}
+                  >
+                    <option value="">Selecione o cliente...</option>
+                    {contratos.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.cliente_nome}{c.descricao ? ` — ${c.descricao}` : ''} ({formatMoeda(c.valor_mensal)}/mês)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Modo livre */}
+              {avulsaTipo === 'livre' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                  <div>
+                    <label style={labelStyle}>Cliente *</label>
+                    <select
+                      value={avulsaForm.cliente_id_livre}
+                      onChange={(e) => setAvulsaForm({ ...avulsaForm, cliente_id_livre: e.target.value, contrato_id: '' })}
+                      style={inputStyle}
+                    >
+                      <option value="">Selecione...</option>
+                      {todosClientes.map((c) => (
+                        <option key={c.id} value={c.id}>{c.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Descrição do serviço *</label>
+                    <input
+                      type="text"
+                      value={avulsaForm.descricao}
+                      onChange={(e) => setAvulsaForm({ ...avulsaForm, descricao: e.target.value })}
+                      style={inputStyle}
+                      placeholder="Ex: Criação de landing page"
+                    />
+                  </div>
+                </div>
+              )}
+
 
               {/* Valor e vencimento */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
