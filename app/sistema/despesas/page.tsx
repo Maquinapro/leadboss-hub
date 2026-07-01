@@ -797,19 +797,30 @@ export default function DespesasPage() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' }}>
               {cartoes.map((c) => (
-                <div key={c.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '8px', padding: '20px', position: 'relative' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: c.cor, marginBottom: '12px' }} />
-                  <div style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>{c.nome}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--ink-muted)' }}>
-                    {c.bandeira && <span>{c.bandeira} </span>}
-                    {c.ultimos_digitos && <span>···· {c.ultimos_digitos}</span>}
+                <div key={c.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ padding: '18px 20px', flex: 1 }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: c.cor, marginBottom: '12px' }} />
+                    <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px' }}>{c.nome}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--ink-muted)' }}>
+                      {c.bandeira && <span>{c.bandeira}</span>}
+                      {c.bandeira && c.ultimos_digitos && <span> · </span>}
+                      {c.ultimos_digitos && <span>···· {c.ultimos_digitos}</span>}
+                    </div>
                   </div>
-                  <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '4px' }}>
-                    <button onClick={() => abrirEdicaoCartao(c)} title="Editar" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                  <div style={{ borderTop: '1px solid var(--line-soft)', display: 'flex' }}>
+                    <button onClick={() => abrirEdicaoCartao(c)} style={{
+                      flex: 1, padding: '10px', background: 'transparent', border: 'none',
+                      borderRight: '1px solid var(--line-soft)', cursor: 'pointer',
+                      fontSize: '12px', fontWeight: 500, color: 'var(--ink-soft)', fontFamily: 'inherit',
+                    }}>
+                      Editar
                     </button>
-                    <button onClick={() => handleDesativarCartao(c.id)} title="Remover" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M9 6V4h6v2" /></svg>
+                    <button onClick={() => handleDesativarCartao(c.id)} style={{
+                      flex: 1, padding: '10px', background: 'transparent', border: 'none',
+                      cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+                      color: 'var(--accent)', fontFamily: 'inherit',
+                    }}>
+                      Remover
                     </button>
                   </div>
                 </div>
@@ -912,54 +923,64 @@ export default function DespesasPage() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
               {contasCorrentes.map((c) => (
-                <div key={c.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '8px', padding: '20px', position: 'relative' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                    <div style={{
-                      width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
-                      background: c.tipo === 'empresa' ? 'var(--green)' : '#2d6a8f',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                <div key={c.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ padding: '18px 20px', flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                      <div style={{
+                        width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
+                        background: c.tipo === 'empresa' ? 'var(--green)' : '#2d6a8f',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--ink)' }}>{c.nome}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>
+                          {c.banco} · <span style={{ color: c.tipo === 'empresa' ? 'var(--green)' : '#2d6a8f', fontWeight: 500 }}>
+                            {c.tipo === 'empresa' ? 'PJ' : 'PF'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
+                      {c.agencia && (
+                        <div>
+                          <div style={{ color: 'var(--ink-muted)', marginBottom: '2px' }}>Agência</div>
+                          <div style={{ fontWeight: 500, color: 'var(--ink)' }}>{c.agencia}</div>
+                        </div>
+                      )}
+                      {c.conta && (
+                        <div>
+                          <div style={{ color: 'var(--ink-muted)', marginBottom: '2px' }}>Conta{c.digito ? '/Dígito' : ''}</div>
+                          <div style={{ fontWeight: 500, color: 'var(--ink)' }}>{c.conta}{c.digito ? `-${c.digito}` : ''}</div>
+                        </div>
+                      )}
+                      {c.pix && (
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <div style={{ color: 'var(--ink-muted)', marginBottom: '2px' }}>Chave PIX</div>
+                          <div style={{ fontWeight: 500, color: 'var(--ink)', wordBreak: 'break-all' }}>{c.pix}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid var(--line-soft)', display: 'flex' }}>
+                    <button onClick={() => abrirEdicaoConta(c)} style={{
+                      flex: 1, padding: '10px', background: 'transparent', border: 'none',
+                      borderRight: '1px solid var(--line-soft)', cursor: 'pointer',
+                      fontSize: '12px', fontWeight: 500, color: 'var(--ink-soft)', fontFamily: 'inherit',
                     }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--ink)' }}>{c.nome}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>
-                        {c.banco} · <span style={{ color: c.tipo === 'empresa' ? 'var(--green)' : '#2d6a8f', fontWeight: 500 }}>
-                          {c.tipo === 'empresa' ? 'PJ' : 'PF'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
-                    {c.agencia && (
-                      <div>
-                        <div style={{ color: 'var(--ink-muted)', marginBottom: '2px' }}>Agência</div>
-                        <div style={{ fontWeight: 500, color: 'var(--ink)' }}>{c.agencia}</div>
-                      </div>
-                    )}
-                    {c.conta && (
-                      <div>
-                        <div style={{ color: 'var(--ink-muted)', marginBottom: '2px' }}>Conta{c.digito ? `/Dígito` : ''}</div>
-                        <div style={{ fontWeight: 500, color: 'var(--ink)' }}>{c.conta}{c.digito ? `-${c.digito}` : ''}</div>
-                      </div>
-                    )}
-                    {c.pix && (
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <div style={{ color: 'var(--ink-muted)', marginBottom: '2px' }}>Chave PIX</div>
-                        <div style={{ fontWeight: 500, color: 'var(--ink)', wordBreak: 'break-all' }}>{c.pix}</div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', gap: '4px' }}>
-                    <button onClick={() => abrirEdicaoConta(c)} title="Editar" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                      Editar
                     </button>
-                    <button onClick={() => handleDesativarConta(c.id)} title="Remover" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-muted)', display: 'flex', padding: '4px' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M9 6V4h6v2" /></svg>
+                    <button onClick={() => handleDesativarConta(c.id)} style={{
+                      flex: 1, padding: '10px', background: 'transparent', border: 'none',
+                      cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+                      color: 'var(--accent)', fontFamily: 'inherit',
+                    }}>
+                      Remover
                     </button>
                   </div>
                 </div>
