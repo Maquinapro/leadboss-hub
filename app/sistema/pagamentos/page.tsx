@@ -239,7 +239,7 @@ export default function PagamentosPage() {
       const contrato = contratos.find(c => c.id === avulsaForm.contrato_id)
       if (!contrato) { setSavingAvulsa(false); return }
       clienteId = contrato.cliente_id
-      contratoId = contrato.id
+      // contrato_id fica null: receita avulsa não é a mensalidade do contrato
     } else {
       clienteId = avulsaForm.cliente_id_livre
     }
@@ -248,7 +248,7 @@ export default function PagamentosPage() {
 
     const { error: insertError } = await supabase.from('pagamentos').insert({
       cliente_id: clienteId,
-      contrato_id: contratoId,
+      contrato_id: null,
       mes_referencia: mesIni,
       valor: Number(avulsaForm.valor),
       data_vencimento: avulsaForm.data_vencimento,
