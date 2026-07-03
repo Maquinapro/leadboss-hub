@@ -127,6 +127,7 @@ export default function DespesasPage() {
   const [pagamentos6m, setPagamentos6m] = useState<PagamentoMes[]>([])
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState<'despesas' | 'cartoes' | 'contas'>('despesas')
+  const [ordenacao, setOrdenacao] = useState<'vencimento' | 'categoria'>('vencimento')
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -420,6 +421,25 @@ export default function DespesasPage() {
     ? Number(form.valor_total) / Number(form.parcelas)
     : null
 
+  // Lista ordenada conforme o toggle: por vencimento (pendentes primeiro) ou por categoria
+  const catOrder = (c: string) => {
+    const i = CATEGORIAS.findIndex((x) => x.value === c)
+    return i === -1 ? 999 : i
+  }
+  const despesasExibidas = [...despesas].sort((a, b) => {
+    if (ordenacao === 'categoria') {
+      const diff = catOrder(a.categoria) - catOrder(b.categoria)
+      if (diff !== 0) return diff
+    } else {
+      const aPago = a.status === 'pago' ? 1 : 0
+      const bPago = b.status === 'pago' ? 1 : 0
+      if (aPago !== bPago) return aPago - bPago
+    }
+    return (a.data_vencimento || '9999-12-31').localeCompare(b.data_vencimento || '9999-12-31')
+  })
+  const totalCategoria = (cat: string) =>
+    despesas.filter((d) => d.categoria === cat).reduce((s, d) => s + Number(d.valor_total) / d.parcelas, 0)
+
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px', border: '1px solid var(--line)',
     borderRadius: '4px', fontSize: '14px', color: 'var(--ink)',
@@ -562,8 +582,22 @@ export default function DespesasPage() {
             </div>
           </div>
 
-          {/* Botão nova despesa */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+          {/* Toggle de visualização + botão nova despesa */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '2px', padding: '3px', background: 'var(--line-soft)', borderRadius: '6px' }}>
+              {([['vencimento', 'Por vencimento'], ['categoria', 'Por categoria']] as const).map(([val, label]) => (
+                <button key={val} onClick={() => setOrdenacao(val)} style={{
+                  padding: '7px 14px', borderRadius: '4px', fontSize: '12px', fontWeight: 600,
+                  border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  background: ordenacao === val ? 'var(--bg-card)' : 'transparent',
+                  color: ordenacao === val ? 'var(--ink)' : 'var(--ink-muted)',
+                  boxShadow: ordenacao === val ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'background 0.15s',
+                }}>
+                  {label}
+                </button>
+              ))}
+            </div>
             <button onClick={() => setShowForm(!showForm)} style={{
               display: 'inline-flex', alignItems: 'center', gap: '7px',
               padding: '10px 20px', borderRadius: '6px', background: 'var(--ink)', color: 'var(--bg)',
@@ -683,7 +717,7 @@ export default function DespesasPage() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {despesas.map((d) => {
+              {despesasExibidas.map((d, idx) => {
                 const valorMes = Number(d.valor_total) / d.parcelas
                 const isPago = d.status === 'pago'
                 const hoje2 = todayISO()
@@ -693,9 +727,20 @@ export default function DespesasPage() {
                 const origemLabel = conta
                   ? `${conta.nome} — ${conta.banco}`
                   : ORIGEM_LABELS[d.origem] || d.origem
+                const novoGrupo = ordenacao === 'categoria' &&
+                  (idx === 0 || despesasExibidas[idx - 1].categoria !== d.categoria)
 
                 return (
-                  <div key={d.id} style={{
+                  <div key={d.id}>
+                  {novoGrupo && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: idx === 0 ? '0 4px 8px' : '16px 4px 8px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-muted)' }}>
+                        {CAT_LABELS[d.categoria] || d.categoria}
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)' }}>{fmtDec(totalCategoria(d.categoria))}</span>
+                    </div>
+                  )}
+                  <div style={{
                     background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '6px',
                     padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
                     opacity: isPago ? 0.75 : 1,
@@ -756,6 +801,7 @@ export default function DespesasPage() {
                         <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4h6v2" />
                       </svg>
                     </button>
+                  </div>
                   </div>
                 )
               })}
