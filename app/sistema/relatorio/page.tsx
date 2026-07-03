@@ -273,46 +273,57 @@ function RelPanoramaMes() {
 // ─── FLUXO MENSAL ────────────────────────────────────────────────────────────
 function RelFluxoMensal() {
   const supabase = createClient()
-  const [meses, setMeses] = useState(6)
+  type Modo = 'este_mes' | 'mes_passado' | 'entre_datas'
+  const [modo, setModo] = useState<Modo>('este_mes')
+  const [inicio, setInicio] = useState(toISODate(primeiroDiaMes))
+  const [fim, setFim] = useState(toISODate(ultimoDiaMes))
   const [dados, setDados] = useState<{ mes: string; entradas: number; saidas: number; saldo: number }[]>([])
   const [loading, setLoading] = useState(false)
   const [buscou, setBuscou] = useState(false)
 
-  async function buscar() {
+  function getRangeFromModo(m: Modo): { ini: string; fim: string } {
+    const hoje = new Date()
+    if (m === 'este_mes') return {
+      ini: toISODate(new Date(hoje.getFullYear(), hoje.getMonth(), 1)),
+      fim: toISODate(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)),
+    }
+    if (m === 'mes_passado') return {
+      ini: toISODate(new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1)),
+      fim: toISODate(new Date(hoje.getFullYear(), hoje.getMonth(), 0)),
+    }
+    return { ini: inicio, fim }
+  }
+
+  async function buscar(modoAtual = modo) {
     setLoading(true)
     try {
-      const hoje = new Date()
+      const { ini: iniGeral, fim: fimGeral } = getRangeFromModo(modoAtual)
+
+      // Monta lista de meses entre ini e fim
       const periodos: { label: string; ini: string; fim: string }[] = []
-      for (let i = meses - 1; i >= 0; i--) {
-        const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1)
-        const ini = toISODate(d)
-        const fim = toISODate(new Date(d.getFullYear(), d.getMonth() + 1, 0))
-        const label = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })
-        periodos.push({ label, ini, fim })
+      const cur = new Date(iniGeral + 'T00:00:00')
+      const end = new Date(fimGeral + 'T00:00:00')
+      while (cur <= end) {
+        const ini = toISODate(new Date(cur.getFullYear(), cur.getMonth(), 1))
+        const fimP = toISODate(new Date(cur.getFullYear(), cur.getMonth() + 1, 0))
+        const label = cur.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })
+        periodos.push({ label, ini, fim: fimP })
+        cur.setMonth(cur.getMonth() + 1)
       }
 
-      const iniGeral = periodos[0].ini
-      const fimGeral = periodos[periodos.length - 1].fim
-
       const [{ data: pags }, { data: desps }] = await Promise.all([
-        supabase
-          .from('pagamentos')
-          .select('mes_referencia, valor, valor_pago, status')
-          .gte('mes_referencia', iniGeral)
-          .lte('mes_referencia', fimGeral),
-        supabase
-          .from('despesas')
-          .select('mes_inicio, valor_total, parcelas, status')
-          .gte('mes_inicio', iniGeral)
-          .lte('mes_inicio', fimGeral),
+        supabase.from('pagamentos').select('mes_referencia, valor, valor_pago, status')
+          .gte('mes_referencia', iniGeral).lte('mes_referencia', fimGeral),
+        supabase.from('despesas').select('mes_inicio, valor_total, parcelas, status')
+          .gte('mes_inicio', iniGeral).lte('mes_inicio', fimGeral),
       ])
 
-      const resultado = periodos.map(({ label, ini, fim }) => {
+      const resultado = periodos.map(({ label, ini, fim: fimP }) => {
         const entradas = (pags || [])
-          .filter(p => p.mes_referencia >= ini && p.mes_referencia <= fim && p.status === 'pago')
+          .filter(p => p.mes_referencia >= ini && p.mes_referencia <= fimP && p.status === 'pago')
           .reduce((s, p) => s + Number(p.valor_pago ?? p.valor), 0)
         const saidas = (desps || [])
-          .filter(d => d.mes_inicio >= ini && d.mes_inicio <= fim && d.status === 'pago')
+          .filter(d => d.mes_inicio >= ini && d.mes_inicio <= fimP && d.status === 'pago')
           .reduce((s, d) => s + Number(d.valor_total) / (d.parcelas || 1), 0)
         return { mes: label, entradas, saidas, saldo: entradas - saidas }
       })
@@ -324,6 +335,26 @@ function RelFluxoMensal() {
     }
   }
 
+  function selecionarModo(m: Modo) {
+    setModo(m)
+    setBuscou(false)
+    setDados([])
+    if (m !== 'entre_datas') buscar(m)
+  }
+
+  const btnStyle = (ativo: boolean): React.CSSProperties => ({
+    padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
+    border: ativo ? '1.5px solid var(--ink)' : '1px solid var(--line)',
+    background: ativo ? 'var(--ink)' : 'transparent',
+    color: ativo ? 'var(--bg)' : 'var(--ink-muted)',
+    fontSize: '13px', transition: 'all 0.12s',
+  })
+
+  const inputStyle: React.CSSProperties = {
+    padding: '8px 12px', border: '1px solid var(--line)', borderRadius: '4px',
+    fontSize: '13px', color: 'var(--ink)', background: 'var(--bg)', fontFamily: 'inherit',
+  }
+
   const maxVal = Math.max(...dados.map(d => Math.max(d.entradas, d.saidas)), 1)
   const totalEntradas = dados.reduce((s, d) => s + d.entradas, 0)
   const totalSaidas = dados.reduce((s, d) => s + d.saidas, 0)
@@ -331,25 +362,28 @@ function RelFluxoMensal() {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <div>
-          <div style={{ fontSize: '11px', color: 'var(--ink-muted)', fontWeight: 600, marginBottom: '5px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Período</div>
-          <select value={meses} onChange={e => setMeses(Number(e.target.value))} style={{
-            padding: '9px 12px', border: '1px solid var(--line)', borderRadius: '4px',
-            fontSize: '14px', color: 'var(--ink)', background: 'var(--bg)', fontFamily: 'inherit', cursor: 'pointer',
-          }}>
-            <option value={3}>Últimos 3 meses</option>
-            <option value={6}>Últimos 6 meses</option>
-            <option value={12}>Últimos 12 meses</option>
-          </select>
-        </div>
-        <button onClick={buscar} disabled={loading} style={{
-          padding: '9px 20px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
-          border: 'none', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
-          fontFamily: 'inherit', opacity: loading ? 0.5 : 1,
-        }}>
-          {loading ? 'Buscando...' : 'Gerar'}
-        </button>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <button style={btnStyle(modo === 'este_mes')} onClick={() => selecionarModo('este_mes')}>Este mês</button>
+        <button style={btnStyle(modo === 'mes_passado')} onClick={() => selecionarModo('mes_passado')}>Mês passado</button>
+        <button style={btnStyle(modo === 'entre_datas')} onClick={() => selecionarModo('entre_datas')}>Entre datas</button>
+
+        {modo === 'entre_datas' && (
+          <>
+            <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} style={inputStyle} />
+            <span style={{ color: 'var(--ink-muted)', fontSize: '13px' }}>até</span>
+            <input type="date" value={fim} onChange={e => setFim(e.target.value)} style={inputStyle} />
+            <button onClick={() => buscar('entre_datas')} disabled={loading} style={{
+              padding: '8px 18px', borderRadius: '4px', background: 'var(--ink)', color: 'var(--bg)',
+              border: 'none', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit', opacity: loading ? 0.5 : 1,
+            }}>
+              {loading ? 'Buscando...' : 'Gerar'}
+            </button>
+          </>
+        )}
+        {loading && modo !== 'entre_datas' && (
+          <span style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Carregando...</span>
+        )}
       </div>
 
       {buscou && dados.length > 0 && (
