@@ -36,8 +36,9 @@ export default async function DashboardPage() {
     .lt('mes_referencia', fimMes.toISOString().split('T')[0])
 
   const totalClientesAtivos = clientesAtivos?.length || 0
-  const receitaPrevista = (clientesAtivos || []).reduce(
-    (sum, c) => sum + Number(c.valor_mensal || 0),
+  // Receita prevista = soma de todas as faturas do mês (geradas), não o valor dos contratos
+  const receitaPrevista = (pagamentosMes || []).reduce(
+    (sum, p) => sum + Number(p.valor || 0),
     0
   )
   const recebido = (pagamentosMes || [])
