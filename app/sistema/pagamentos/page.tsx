@@ -744,7 +744,7 @@ export default function PagamentosPage() {
                     <option value="">Selecione o cliente...</option>
                     {contratos.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.cliente_nome}{c.descricao ? ` — ${c.descricao}` : ''} ({formatMoeda(c.valor_mensal)}/mês)
+                        {c.cliente_nome}
                       </option>
                     ))}
                   </select>
