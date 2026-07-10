@@ -627,6 +627,10 @@ export default function HomePage() {
             fontSize: '12px', color: 'var(--ink-muted)', flexWrap: 'wrap', gap: '12px',
           }}>
             <div>© 2026 Leadboss Ads. Todos os direitos reservados.</div>
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <Link href="/privacidade" style={{ color: 'var(--ink-muted)' }}>Política de Privacidade</Link>
+              <Link href="/termos" style={{ color: 'var(--ink-muted)' }}>Termos de Serviço</Link>
+            </div>
             <div>Tráfego pago · Estratégia · Gestão · Resultado</div>
           </div>
         </div>
