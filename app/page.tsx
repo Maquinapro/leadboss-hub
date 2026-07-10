@@ -75,13 +75,22 @@ export default function HomePage() {
             </a>
           </div>
 
-          <WhatsAppCTA className="nav-mobile-cta btn-primary" style={{
-            background: 'var(--ink)', color: 'var(--bg)',
-            padding: '12px 20px', borderRadius: '4px', fontWeight: 500, fontSize: '13px',
-            display: 'none',
-          }}>
-            Falar →
-          </WhatsAppCTA>
+          <div className="nav-mobile-cta" style={{ display: 'none', alignItems: 'center', gap: '8px' }}>
+            <a href="https://clientes.leadboss.com.br" target="_blank" rel="noopener" style={{
+              background: 'var(--ink)', color: 'var(--bg)',
+              padding: '12px 16px', borderRadius: '4px', fontWeight: 500, fontSize: '13px',
+              whiteSpace: 'nowrap',
+            }}>
+              Portal do Cliente
+            </a>
+            <WhatsAppCTA className="btn-primary" style={{
+              border: '1px solid var(--line)', color: 'var(--ink-soft)',
+              padding: '12px 16px', borderRadius: '4px', fontWeight: 500, fontSize: '13px',
+              whiteSpace: 'nowrap',
+            }}>
+              Falar →
+            </WhatsAppCTA>
+          </div>
         </div>
       </nav>
 

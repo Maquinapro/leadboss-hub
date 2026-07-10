@@ -76,7 +76,7 @@ select {
 .nav-mobile-cta { display: none; }
 @media (max-width: 900px) {
   .nav-desktop { display: none !important; }
-  .nav-mobile-cta { display: inline-block !important; }
+  .nav-mobile-cta { display: flex !important; }
 }
 
 /* Nav: underline deslizante */
