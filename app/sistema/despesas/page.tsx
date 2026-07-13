@@ -306,7 +306,7 @@ export default function DespesasPage() {
     if (status !== 'pago') {
       // abrir modal de baixa
       const despesa = despesas.find((d: any) => d.id === id)
-      const valorDespesa = despesa ? Number(despesa.valor) : 0
+      const valorDespesa = despesa ? Number(despesa.valor_total) / despesa.parcelas : 0
       setModalBaixa({ id, data: todayISO(), conta_corrente_id: '', valor: valorDespesa, valor_pago: '' })
       return
     }
