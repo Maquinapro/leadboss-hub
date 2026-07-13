@@ -166,7 +166,7 @@ export default function DespesasPage() {
   const [editingConta, setEditingConta] = useState<ContaCorrente | null>(null)
 
   // ── Modal de baixa
-  const [modalBaixa, setModalBaixa] = useState<{ id: string; data: string; conta_corrente_id: string } | null>(null)
+  const [modalBaixa, setModalBaixa] = useState<{ id: string; data: string; conta_corrente_id: string; valor: number; valor_pago: string } | null>(null)
   const [savingBaixa, setSavingBaixa] = useState(false)
 
   // ── Load ────────────────────────────────────────────────
@@ -305,7 +305,8 @@ export default function DespesasPage() {
   async function handleToggleStatus(id: string, status: string) {
     if (status !== 'pago') {
       // abrir modal de baixa
-      setModalBaixa({ id, data: todayISO(), conta_corrente_id: '' })
+      const despesa = despesas.find((d: any) => d.id === id)
+      setModalBaixa({ id, data: todayISO(), conta_corrente_id: '', valor: despesa?.valor || 0, valor_pago: '' })
       return
     }
     // desfazer baixa
@@ -320,6 +321,7 @@ export default function DespesasPage() {
       status: 'pago',
       data_pagamento: modalBaixa.data || todayISO(),
       conta_corrente_id: modalBaixa.conta_corrente_id || null,
+      valor_pago: modalBaixa.valor_pago ? Number(modalBaixa.valor_pago) : modalBaixa.valor,
     }).eq('id', modalBaixa.id)
     setModalBaixa(null)
     setSavingBaixa(false)
@@ -1063,6 +1065,27 @@ export default function DespesasPage() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--ink-muted)', marginBottom: '4px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Valor pago
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-muted)', marginBottom: '4px' }}>Valor original</label>
+                  <div style={{ padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--line)', background: 'var(--line-soft)', fontSize: '14px', color: 'var(--ink-muted)' }}>
+                    {modalBaixa.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-muted)', marginBottom: '4px' }}>Valor pago</label>
+                  <input
+                    type="number" step="0.01" min="0"
+                    value={modalBaixa.valor_pago}
+                    onChange={(e) => setModalBaixa({ ...modalBaixa, valor_pago: e.target.value })}
+                    placeholder={String(modalBaixa.valor)}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--line)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', color: 'var(--ink)', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--ink-muted)', marginBottom: '4px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 Saiu de qual conta?
               </label>
