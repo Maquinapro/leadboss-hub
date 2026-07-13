@@ -89,6 +89,14 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
     data_saida: '',
     motivo_saida: '',
     observacoes: '',
+    cpf_cnpj: '',
+    cep: '',
+    endereco: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    estado: '',
   })
 
   const [novoContrato, setNovoContrato] = useState({
@@ -131,6 +139,14 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
           data_saida: clienteData.data_saida || '',
           motivo_saida: clienteData.motivo_saida || '',
           observacoes: clienteData.observacoes || '',
+          cpf_cnpj: clienteData.cpf_cnpj || '',
+          cep: clienteData.cep || '',
+          endereco: clienteData.endereco || '',
+          numero: clienteData.numero || '',
+          complemento: clienteData.complemento || '',
+          bairro: clienteData.bairro || '',
+          cidade: clienteData.cidade || '',
+          estado: clienteData.estado || '',
         })
       }
       if (planosData) setPlanos(planosData)
@@ -572,6 +588,47 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
                     </div>
                   </div>
                 )}
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={labelStyle}>CPF / CNPJ</label>
+                  <input type="text" value={form.cpf_cnpj} onChange={(e) => setForm({ ...form, cpf_cnpj: e.target.value })} placeholder="000.000.000-00 ou 00.000.000/0001-00" style={inputStyle} />
+                </div>
+                <div style={{ borderTop: '1px solid var(--line)', paddingTop: '24px', marginBottom: '24px' }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-soft)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Endereço</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '16px', marginBottom: '16px' }}>
+                    <div>
+                      <label style={labelStyle}>CEP</label>
+                      <input type="text" value={form.cep} onChange={(e) => setForm({ ...form, cep: e.target.value })} placeholder="00000-000" style={inputStyle} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Número</label>
+                      <input type="text" value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="123" style={inputStyle} />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={labelStyle}>Endereço</label>
+                    <input type="text" value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} placeholder="Rua, Avenida..." style={inputStyle} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                    <div>
+                      <label style={labelStyle}>Complemento</label>
+                      <input type="text" value={form.complemento} onChange={(e) => setForm({ ...form, complemento: e.target.value })} placeholder="Sala, Apto..." style={inputStyle} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Bairro</label>
+                      <input type="text" value={form.bairro} onChange={(e) => setForm({ ...form, bairro: e.target.value })} placeholder="Bairro" style={inputStyle} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: '16px' }}>
+                    <div>
+                      <label style={labelStyle}>Cidade</label>
+                      <input type="text" value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} placeholder="Cidade" style={inputStyle} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Estado</label>
+                      <input type="text" value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} placeholder="SP" maxLength={2} style={inputStyle} />
+                    </div>
+                  </div>
+                </div>
                 <div style={{ marginBottom: '24px' }}>
                   <label style={labelStyle}>Observações</label>
                   <textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }} />

@@ -46,6 +46,14 @@ export default function NovoClientePage() {
     dia_vencimento: '5',
     status: 'ativo',
     observacoes: '',
+    cpf_cnpj: '',
+    cep: '',
+    endereco: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    estado: '',
   })
 
   useEffect(() => {
@@ -91,6 +99,14 @@ export default function NovoClientePage() {
       .insert({
         nome: form.nome,
         segmento: form.segmento,
+        cpf_cnpj: form.cpf_cnpj || null,
+        cep: form.cep || null,
+        endereco: form.endereco || null,
+        numero: form.numero || null,
+        complemento: form.complemento || null,
+        bairro: form.bairro || null,
+        cidade: form.cidade || null,
+        estado: form.estado || null,
         email: form.email || null,
         telefone: form.telefone || null,
         responsavel_contato: form.responsavel_contato || null,
