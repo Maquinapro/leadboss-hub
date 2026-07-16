@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import MicroInteractions from '@/components/MicroInteractions'
-import FlowDiagram from '@/components/FlowDiagram'
+import dynamic from 'next/dynamic'
 import WhatsAppCTA from '@/components/WhatsAppCTA'
+
+const FlowDiagram = dynamic(() => import('@/components/FlowDiagram'), { ssr: false })
 
 // Perguntas frequentes — conteúdo extraível pela IA do Google (FAQPage schema)
 const FAQS: { q: string; a: string }[] = [
@@ -645,7 +646,6 @@ export default function HomePage() {
         </div>
       </footer>
 
-      <MicroInteractions />
 
       {/* CSS responsivo + micro-interações */}
       <style dangerouslySetInnerHTML={{ __html: `

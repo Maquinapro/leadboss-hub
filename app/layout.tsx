@@ -148,6 +148,13 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
         />
 
+        {/* Scroll reveal — vanilla JS, sem React */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var o=new IntersectionObserver(function(e){e.forEach(function(e){if(e.isIntersecting){e.target.classList.add('revealed');o.unobserve(e.target)}})},{threshold:0.1,rootMargin:'0px 0px -48px 0px'});document.querySelectorAll('[data-reveal],[data-reveal-stagger]').forEach(function(e){o.observe(e)})})()`,
+          }}
+        />
+
       </head>
       <body>
         {/* Google Tag Manager (noscript) */}
