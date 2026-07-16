@@ -1,9 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import WhatsAppCTA from '@/components/WhatsAppCTA'
-
-const FlowDiagram = dynamic(() => import('@/components/FlowDiagram'), { ssr: false })
 
 // Perguntas frequentes — conteúdo extraível pela IA do Google (FAQPage schema)
 const FAQS: { q: string; a: string }[] = [
@@ -175,10 +172,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== FLUXO: canais → clientes ===== */}
-      <section style={{ padding: 'clamp(64px, 10vw, 120px) 24px' }}>
+      {/* ===== MÉTODO: 4 etapas ===== */}
+      <section id="como-funciona" style={{ padding: 'clamp(64px, 10vw, 120px) 24px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div data-reveal style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 56px' }}>
+
+          {/* Cabeçalho */}
+          <div data-reveal style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 72px' }}>
             <div className="brand-caps" style={{ marginBottom: '16px', color: 'var(--accent)' }}>
               * O que fazemos
             </div>
@@ -192,10 +191,127 @@ export default function HomePage() {
               Captamos atenção onde o seu público está e conduzimos cada clique até virar uma oportunidade real de negócio.
             </p>
           </div>
-          <div data-reveal>
-            <FlowDiagram />
+
+          {/* Grade de método */}
+          <div data-reveal-stagger className="method-grid">
+
+            {/* Linha conectora — visível apenas no desktop */}
+            <div className="method-line" aria-hidden="true" />
+
+            {([
+              {
+                n: '01',
+                title: 'Estratégia',
+                desc: 'Mapeamos seu público, concorrência e janelas de oportunidade antes de investir um centavo em anúncios.',
+                tags: ['Planejamento', 'ICP', 'Pesquisa'],
+              },
+              {
+                n: '02',
+                title: 'Anúncios',
+                desc: 'Criamos e publicamos campanhas calibradas para atrair quem tem real intenção de comprar ou contratar.',
+                tags: ['Meta Ads', 'Google Ads', 'LinkedIn', 'TikTok'],
+              },
+              {
+                n: '03',
+                title: 'Conversão',
+                desc: 'Landing pages rápidas e objetivas que transformam clique em lead ou venda sem perder o visitante.',
+                tags: ['Landing page', 'CRO', 'A/B'],
+              },
+              {
+                n: '04',
+                title: 'Crescimento',
+                desc: 'Análise semanal de dados, ajustes de criativos e escala das campanhas que provam resultado.',
+                tags: ['Relatórios', 'Escala', 'ROAS'],
+              },
+            ] as { n: string; title: string; desc: string; tags: string[] }[]).map((step) => (
+              <div key={step.n} className="method-step">
+                {/* Número */}
+                <div className="method-dot" aria-hidden="true">
+                  <span className="brand-caps" style={{ fontSize: '11px', color: 'var(--accent)' }}>{step.n}</span>
+                </div>
+
+                <h3 className="font-serif" style={{
+                  fontSize: 'clamp(18px, 2vw, 22px)', fontWeight: 600,
+                  letterSpacing: '-0.01em', lineHeight: 1.2, marginBottom: '12px',
+                }}>
+                  {step.title}
+                </h3>
+
+                <p style={{
+                  fontSize: '15px', color: 'var(--ink-soft)',
+                  lineHeight: 1.65, marginBottom: '20px',
+                }}>
+                  {step.desc}
+                </p>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {step.tags.map((tag) => (
+                    <span key={tag} style={{
+                      fontSize: '11px', letterSpacing: '0.07em', textTransform: 'uppercase',
+                      color: 'var(--ink-muted)', background: 'var(--line-soft)',
+                      borderRadius: '3px', padding: '4px 9px',
+                    }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+
+        <style dangerouslySetInnerHTML={{ __html: `
+          .method-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            position: relative;
+          }
+          .method-line {
+            position: absolute;
+            top: 27px;
+            left: calc(12.5% + 4px);
+            right: calc(12.5% + 4px);
+            height: 1px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--line) 40%, var(--line) 60%, var(--accent) 100%);
+            background-size: 200% 100%;
+            animation: method-shimmer 4s linear infinite;
+          }
+          @keyframes method-shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+          .method-step {
+            padding: 0 32px 0 0;
+            position: relative;
+          }
+          .method-step:last-child { padding-right: 0; }
+          .method-dot {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+            position: relative; z-index: 1;
+            transition: border-color 0.22s ease, box-shadow 0.22s ease;
+          }
+          .method-step:hover .method-dot {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-soft);
+          }
+          @media (max-width: 760px) {
+            .method-grid { grid-template-columns: 1fr 1fr; gap: 40px 24px; }
+            .method-line { display: none; }
+            .method-step { padding: 0; }
+          }
+          @media (max-width: 480px) {
+            .method-grid { grid-template-columns: 1fr; gap: 36px; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .method-line { animation: none; }
+          }
+        ` }} />
       </section>
 
       {/* ===== CENÁRIO HOJE ===== */}
