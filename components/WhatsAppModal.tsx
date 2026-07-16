@@ -336,8 +336,8 @@ export default function WhatsAppModal({ isOpen, onClose, gclid }: Props) {
           left: 16px;
           pointer-events: none;
           color: var(--ink-muted);
-          transition: top 0.18s ease, font-size 0.18s ease, color 0.18s ease, letter-spacing 0.18s ease;
-          background: var(--bg-card);
+          transition: top 0.18s ease, font-size 0.18s ease, color 0.18s ease, letter-spacing 0.18s ease, background 0s;
+          background: transparent;
           padding: 0 3px;
         }
         .wm-field:not(.ta) .wm-label { top: 50%; transform: translateY(-50%); font-size: 15px; }
@@ -346,11 +346,13 @@ export default function WhatsAppModal({ isOpen, onClose, gclid }: Props) {
         .wm-field.has-val:not(.ta) .wm-label {
           top: 0; transform: translateY(-50%); font-size: 11px;
           letter-spacing: 0.05em; color: var(--accent);
+          background: var(--bg-card);
         }
         .wm-field.active.ta .wm-label,
         .wm-field.has-val.ta .wm-label {
           top: 6px; font-size: 11px;
           letter-spacing: 0.05em; color: var(--accent);
+          background: var(--bg-card);
         }
         .wm-error {
           font-size: 11px; color: var(--accent);
