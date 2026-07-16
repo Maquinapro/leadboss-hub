@@ -1,8 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-
-const BASE_NUMBER = '5511917139765'
-const BASE_TEXT = 'Olá, vim pelo site e gostaria de saber mais!'
+import WhatsAppModal from './WhatsAppModal'
 
 export default function WhatsAppCTA({
   children,
@@ -13,22 +11,30 @@ export default function WhatsAppCTA({
   className?: string
   style?: React.CSSProperties
 }) {
-  const [href, setHref] = useState(
-    `https://wa.me/${BASE_NUMBER}?text=${encodeURIComponent(BASE_TEXT)}`
-  )
+  const [gclid, setGclid] = useState('')
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const gclid = params.get('gclid')
-    const text = gclid
-      ? `${BASE_TEXT} [gclid: ${gclid}]`
-      : BASE_TEXT
-    setHref(`https://wa.me/${BASE_NUMBER}?text=${encodeURIComponent(text)}`)
+    setGclid(params.get('gclid') ?? '')
   }, [])
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={className} style={style}>
-      {children}
-    </a>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={className}
+        style={{ cursor: 'pointer', ...style }}
+      >
+        {children}
+      </button>
+
+      <WhatsAppModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        gclid={gclid}
+      />
+    </>
   )
 }
