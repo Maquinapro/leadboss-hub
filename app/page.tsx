@@ -784,7 +784,7 @@ export default function HomePage() {
         @media (max-width: 900px) {
           .nav-desktop { display: none !important; }
           .nav-mobile-cta { display: inline-block !important; }
-          .hero-bg-globe { display: none; }
+          .hero-bg-globe { width: min(520px, 130vw); top: 44%; }
         }
 
         /* ---- Hero: sublinhado em gradiente sob "mais clientes." ---- */
