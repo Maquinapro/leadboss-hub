@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import WhatsAppCTA from '@/components/WhatsAppCTA'
+import GlobeThree from '@/components/GlobeThree'
 
 // Perguntas frequentes — conteúdo extraível pela IA do Google (FAQPage schema)
 const FAQS: { q: string; a: string }[] = [
@@ -93,81 +94,80 @@ export default function HomePage() {
       </nav>
 
       {/* ===== HERO ===== */}
-      <section style={{ padding: 'clamp(48px, 8vw, 96px) 24px clamp(40px, 6vw, 72px)' }}>
-        <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
-          <div className="hero-grid">
+      <section style={{
+        position: 'relative', overflow: 'hidden',
+        padding: 'clamp(64px, 11vw, 130px) 24px clamp(56px, 8vw, 96px)',
+      }}>
+        {/* Fundo: globo 3D ao vivo, centralizado atrás do texto */}
+        <div className="hero-bg-globe" aria-hidden="true">
+          <GlobeThree />
+        </div>
+        <div className="hero-bg-fade" aria-hidden="true" />
 
-            {/* Coluna esquerda: texto */}
-            <div>
-              <div className="brand-caps hero-tag" style={{ marginBottom: '24px', color: 'var(--accent)' }}>
-                * Tráfego pago para negócios locais
-              </div>
-              <h1 className="font-serif hero-h1" style={{
-                fontSize: 'clamp(38px, 5.5vw, 74px)', fontWeight: 600,
-                letterSpacing: '-0.03em', lineHeight: 1.02, marginBottom: '28px',
-              }}>
-                Mais visibilidade, <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>mais clientes.</em>
-              </h1>
-              <p className="hero-p" style={{
-                fontSize: 'clamp(16px, 2vw, 20px)', color: 'var(--ink-soft)',
-                lineHeight: 1.55, marginBottom: '40px', maxWidth: '520px',
-              }}>
-                Estratégia, gestão e resultado em <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>Meta, Google, LinkedIn e TikTok.</strong> Atraímos clientes qualificados pro seu negócio crescer mês a mês.
-              </p>
-              <div className="hero-cta" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <WhatsAppCTA className="btn-primary" style={{
-                  background: 'var(--ink)', color: 'var(--bg)',
-                  padding: '16px 32px', borderRadius: '4px', fontWeight: 500, fontSize: '15px',
-                }}>
-                  Fale com um especialista →
-                </WhatsAppCTA>
-                <a href="#como-funciona" className="btn-secondary" style={{
-                  padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
-                  fontSize: '15px', border: '1px solid var(--line)', color: 'var(--ink-soft)',
-                }}>
-                  Como funciona
-                </a>
-              </div>
-            </div>
-
-            {/* Coluna direita: vídeo globo */}
-            <div className="hero-globe">
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  transform: 'scale(1.35)',
-                  mixBlendMode: 'multiply',
-                }}
-              >
-                <source src="/globe-preview.mp4" type="video/mp4" />
-              </video>
-            </div>
-
+        <div style={{ position: 'relative', maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
+          <div className="hero-tag" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '9px',
+            marginBottom: '28px', padding: '9px 18px', borderRadius: '999px',
+            border: '1px solid var(--line)', background: 'var(--bg-card)',
+          }}>
+            <span className="hero-tag-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)' }} />
+            <span className="brand-caps" style={{ color: 'var(--accent)', fontSize: '12px' }}>Tráfego pago para negócios locais</span>
           </div>
 
-          {/* Plataformas — fora do grid para não esticar a coluna de texto */}
-          <div style={{ marginTop: '48px', paddingTop: '28px', borderTop: '1px solid var(--line)' }}>
-            <div className="brand-caps" style={{ marginBottom: '14px' }}>
-              * Plataformas que trabalhamos
-            </div>
-            <div style={{ display: 'flex', gap: 'clamp(20px, 3vw, 40px)', flexWrap: 'wrap', alignItems: 'center' }}>
-              {['Meta', 'Google', 'LinkedIn', 'TikTok'].map((p) => (
-                <span key={p} className="font-serif platform-logo" style={{
-                  fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 600,
-                  letterSpacing: '-0.01em', color: 'var(--ink-soft)',
-                }}>
-                  {p}
-                </span>
-              ))}
-            </div>
+          <h1 className="font-serif hero-h1" style={{
+            fontSize: 'clamp(38px, 6vw, 78px)', fontWeight: 600,
+            letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '32px',
+          }}>
+            Mais visibilidade,
+            <span style={{ position: 'relative', display: 'inline-block', marginTop: '4px' }}>
+              <em style={{ display: 'block', fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>mais clientes.</em>
+              <span className="hero-underline" aria-hidden="true" />
+            </span>
+          </h1>
+
+          <p className="hero-p" style={{
+            fontSize: 'clamp(16px, 2vw, 20px)', color: 'var(--ink-soft)',
+            lineHeight: 1.6, margin: '0 auto 40px', maxWidth: '600px',
+          }}>
+            Estratégia, gestão e resultado em{' '}
+            <span style={{ color: 'var(--ink)', fontWeight: 600, background: 'var(--accent-soft)', padding: '2px 8px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
+              Meta, Google, LinkedIn e TikTok
+            </span>. Atraímos clientes qualificados pro seu negócio crescer mês a mês.
+          </p>
+
+          <div className="hero-cta" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <WhatsAppCTA className="btn-primary" style={{
+              background: 'var(--ink)', color: 'var(--bg)',
+              padding: '16px 32px', borderRadius: '4px', fontWeight: 500, fontSize: '15px',
+            }}>
+              Fale com um especialista →
+            </WhatsAppCTA>
+            <a href="#como-funciona" className="btn-secondary" style={{
+              padding: '16px 32px', borderRadius: '4px', fontWeight: 500,
+              fontSize: '15px', border: '1px solid var(--line)', color: 'var(--ink-soft)',
+            }}>
+              Como funciona
+            </a>
+          </div>
+        </div>
+
+        {/* Plataformas */}
+        <div style={{
+          position: 'relative', maxWidth: '760px', margin: '64px auto 0',
+          paddingTop: '28px', borderTop: '1px solid var(--line)', textAlign: 'center',
+        }}>
+          <div className="brand-caps" style={{ marginBottom: '14px' }}>
+            * Plataformas que trabalhamos
+          </div>
+          <div style={{ display: 'flex', gap: 'clamp(20px, 3vw, 40px)', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+            {['Meta', 'Google', 'LinkedIn', 'TikTok'].map((p) => (
+              <span key={p} className="font-serif platform-logo" style={{
+                fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 600,
+                letterSpacing: '-0.01em', color: 'var(--ink-soft)',
+              }}>
+                {p}
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -767,25 +767,45 @@ export default function HomePage() {
       <style dangerouslySetInnerHTML={{ __html: `
         .nav-desktop { display: flex; gap: 28px; }
         .nav-mobile-cta { display: none; }
-        .hero-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 32px;
-          align-items: center;
-        }
-        .hero-globe {
-          border-radius: 50%;
-          overflow: hidden;
+        .hero-bg-globe {
+          position: absolute;
+          top: 50%; left: 50%;
+          width: min(920px, 145vw);
           aspect-ratio: 1;
-          width: 80%;
-          margin: 0 auto;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+        }
+        .hero-bg-fade {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 60% 55% at 50% 40%, transparent 30%, var(--bg) 76%);
+          pointer-events: none;
         }
         @media (max-width: 900px) {
           .nav-desktop { display: none !important; }
           .nav-mobile-cta { display: inline-block !important; }
-          .hero-grid { grid-template-columns: 1fr; }
-          .hero-globe { display: none; }
+          .hero-bg-globe { display: none; }
         }
+
+        /* ---- Hero: sublinhado em gradiente sob "mais clientes." ---- */
+        .hero-underline {
+          position: absolute;
+          left: 0; right: 0; bottom: -10px;
+          height: 3px; border-radius: 999px;
+          background: linear-gradient(90deg, transparent, var(--accent), transparent);
+          box-shadow: 0 0 16px 1px rgba(200,71,43,0.45);
+          transform: scaleX(0);
+          transform-origin: center;
+          animation: hero-underline-grow 1.1s cubic-bezier(0.16,1,0.3,1) 1.05s forwards;
+        }
+        @keyframes hero-underline-grow { to { transform: scaleX(1); } }
+
+        /* ---- Hero: ponto pulsante na badge ---- */
+        @keyframes hero-dot-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%      { opacity: 0.5; transform: scale(0.8); }
+        }
+        .hero-tag-dot { animation: hero-dot-pulse 2s ease-in-out infinite; }
 
         /* ---- Hero: entrada em cascata ---- */
         @keyframes lb-in {
@@ -881,7 +901,8 @@ export default function HomePage() {
 
         /* ---- Respeito por reduced motion ---- */
         @media (prefers-reduced-motion: reduce) {
-          .hero-tag,.hero-h1,.hero-p,.hero-cta { animation: none !important; opacity:1 !important; }
+          .hero-tag,.hero-h1,.hero-p,.hero-cta,.hero-tag-dot { animation: none !important; opacity:1 !important; }
+          .hero-underline { animation: none !important; transform: scaleX(1) !important; }
           [data-reveal],[data-reveal-stagger]>* { opacity:1 !important; transform:none !important; transition:none !important; }
           .btn-primary:hover,.btn-secondary:hover,.card-hover:hover { transform:none !important; box-shadow:none !important; }
         }
