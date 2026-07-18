@@ -2,7 +2,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import WhatsAppCTA from '@/components/WhatsAppCTA'
 import GlobeThree from '@/components/GlobeThree'
-import HeroHeadline from '@/components/HeroHeadline'
 
 // Perguntas frequentes — conteúdo extraível pela IA do Google (FAQPage schema)
 const FAQS: { q: string; a: string }[] = [
@@ -115,7 +114,16 @@ export default function HomePage() {
             <span className="brand-caps" style={{ color: 'var(--accent)', fontSize: '12px' }}>Tráfego pago para negócios locais</span>
           </div>
 
-          <HeroHeadline />
+          <h1 className="font-serif hero-h1" style={{
+            fontSize: 'clamp(38px, 6vw, 78px)', fontWeight: 600,
+            letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '32px',
+          }}>
+            Mais visibilidade,
+            <span style={{ position: 'relative', display: 'inline-block', marginTop: '4px' }}>
+              <em style={{ display: 'block', fontStyle: 'italic', fontWeight: 400, color: 'var(--accent)' }}>mais clientes.</em>
+              <span className="hero-underline" aria-hidden="true" />
+            </span>
+          </h1>
 
           <p className="hero-p" style={{
             fontSize: 'clamp(16px, 2vw, 20px)', color: 'var(--ink-soft)',
