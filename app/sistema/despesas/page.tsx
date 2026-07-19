@@ -202,7 +202,7 @@ export default function DespesasPage() {
       supabase.from('despesas')
         .select('*, cartao:cartoes(nome, cor), conta_corrente:contas_correntes(nome, banco, tipo)')
         .order('mes_inicio'),
-      supabase.from('despesas').select('id, valor_total, parcelas, mes_inicio, status').order('mes_inicio'),
+      supabase.from('despesas').select('id, valor_total, parcelas, mes_inicio, status, recorrente').order('mes_inicio'),
       supabase.from('pagamentos')
         .select('mes_referencia, valor, status')
         .eq('status', 'pago')
@@ -215,11 +215,13 @@ export default function DespesasPage() {
     if (todasData) setTodasDespesas(todasData as Despesa[])
 
     if (despesasData) {
+      const atual = new Date(ano, mes, 1)
       const doMes = (despesasData as Despesa[]).filter((d) => {
         const inicio = new Date(d.mes_inicio + 'T00:00:00')
+        if (atual < inicio) return false
+        if (d.recorrente) return true // recorrente: aparece em todo mês a partir do início, sem data-fim
         const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
-        const atual = new Date(ano, mes, 1)
-        return inicio <= atual && atual <= fim
+        return atual <= fim
       })
       setDespesas(doMes)
     }
@@ -255,11 +257,11 @@ export default function DespesasPage() {
       // Despesa: fatia de cada despesa que cai nesse mês
       const despesaMes = todasDespesas.reduce((s, d) => {
         const inicio = new Date(d.mes_inicio + 'T00:00:00')
-        const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
         const atual = new Date(ano, mes, 1)
-        if (inicio <= atual && atual <= fim) {
-          return s + Number(d.valor_total) / d.parcelas
-        }
+        if (atual < inicio) return s
+        if (d.recorrente) return s + Number(d.valor_total) / d.parcelas
+        const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
+        if (atual <= fim) return s + Number(d.valor_total) / d.parcelas
         return s
       }, 0)
 

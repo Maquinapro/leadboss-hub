@@ -109,6 +109,38 @@ export default function PagamentosPage() {
     observacoes: '',
   })
 
+  async function criarFaturasFaltantes(ano: number, mes: number, contratosList: ContratoAtivo[]): Promise<number> {
+    if (contratosList.length === 0) return 0
+
+    const mesIni = toISODate(getFirstDayOfMonth(ano, mes))
+    const { data: existentes } = await supabase
+      .from('pagamentos')
+      .select('contrato_id')
+      .eq('mes_referencia', mesIni)
+
+    const contratosJaCobrados = new Set((existentes || []).map((e) => e.contrato_id).filter(Boolean))
+    const ultimoDia = getLastDayOfMonth(ano, mes)
+    const novasFaturas = contratosList
+      .filter((c) => !contratosJaCobrados.has(c.id))
+      .map((c) => {
+        const dia = Math.min(c.dia_vencimento, ultimoDia)
+        const vencimento = new Date(ano, mes, dia)
+        return {
+          cliente_id: c.cliente_id,
+          contrato_id: c.id,
+          mes_referencia: mesIni,
+          valor: c.valor_mensal,
+          data_vencimento: toISODate(vencimento),
+          status: 'pendente',
+        }
+      })
+
+    if (novasFaturas.length === 0) return 0
+    const { error: insertError } = await supabase.from('pagamentos').insert(novasFaturas)
+    if (insertError) throw insertError
+    return novasFaturas.length
+  }
+
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -118,32 +150,47 @@ export default function PagamentosPage() {
     setUserEmail(user.email || '')
 
     const mesIni = toISODate(mesAtual)
+    const ano = mesAtual.getFullYear()
+    const mes = mesAtual.getMonth()
 
-    const [{ data: clientesData }, { data: pagamentosData }, { data: clientesAll }] = await Promise.all([
+    const [{ data: clientesData }, { data: clientesAll }] = await Promise.all([
       supabase.from('contratos')
         .select('id, cliente_id, descricao, valor_mensal, dia_vencimento, clientes!inner(nome, status)')
         .eq('ativo', true)
         .eq('clientes.status', 'ativo')
         .order('dia_vencimento'),
-      supabase.from('pagamentos')
-        .select('*, cliente:clientes (nome, email, telefone), contrato:contratos (descricao)')
-        .eq('mes_referencia', mesIni)
-        .order('data_vencimento'),
       supabase.from('clientes').select('id, nome').order('nome'),
     ])
 
     if (clientesAll) setTodosClientes(clientesAll)
 
+    let contratosAtivos: ContratoAtivo[] = []
     if (clientesData) {
-      setContratos(clientesData.map((c: any) => ({
+      contratosAtivos = clientesData.map((c: any) => ({
         id: c.id,
         cliente_id: c.cliente_id,
         cliente_nome: c.clientes?.nome || 'Sem nome',
         descricao: c.descricao,
         valor_mensal: c.valor_mensal,
         dia_vencimento: c.dia_vencimento,
-      })))
+      }))
+      setContratos(contratosAtivos)
     }
+
+    // Gera automaticamente a fatura do mês pra cada contrato ativo que ainda não tem cobrança nesse mês,
+    // pra lista de baixo já vir atualizada ao navegar de mês sem precisar clicar em "Gerar faturas"
+    try {
+      await criarFaturasFaltantes(ano, mes, contratosAtivos)
+    } catch (err) {
+      setError('Erro ao gerar faturas do mês: ' + (err as Error).message)
+    }
+
+    const { data: pagamentosData } = await supabase
+      .from('pagamentos')
+      .select('*, cliente:clientes (nome, email, telefone), contrato:contratos (descricao)')
+      .eq('mes_referencia', mesIni)
+      .order('data_vencimento')
+
     if (pagamentosData) {
       const hojeISO = toISODate(new Date())
       const atualizados = (pagamentosData as unknown as Pagamento[]).map((p) => {
@@ -180,44 +227,13 @@ export default function PagamentosPage() {
     setError('')
     setGenerating(true)
 
-    const mesIni = toISODate(mesAtual)
-    const ano = mesAtual.getFullYear()
-    const mes = mesAtual.getMonth()
-    const ultimoDia = getLastDayOfMonth(ano, mes)
-
-    const { data: existentes } = await supabase
-      .from('pagamentos')
-      .select('contrato_id')
-      .eq('mes_referencia', mesIni)
-
-    const contratosJaCobrados = new Set((existentes || []).map((e) => e.contrato_id).filter(Boolean))
-    const novasFaturas = contratos
-      .filter((c) => !contratosJaCobrados.has(c.id))
-      .map((c) => {
-        const dia = Math.min(c.dia_vencimento, ultimoDia)
-        const vencimento = new Date(ano, mes, dia)
-        return {
-          cliente_id: c.cliente_id,
-          contrato_id: c.id,
-          mes_referencia: mesIni,
-          valor: c.valor_mensal,
-          data_vencimento: toISODate(vencimento),
-          status: 'pendente',
-        }
-      })
-
-    if (novasFaturas.length === 0) {
-      setError('Todas as faturas desse mês já foram geradas.')
-      setGenerating(false)
-      return
-    }
-
-    const { error: insertError } = await supabase.from('pagamentos').insert(novasFaturas)
-
-    if (insertError) {
-      setError('Erro: ' + insertError.message)
-      setGenerating(false)
-      return
+    try {
+      const criadas = await criarFaturasFaltantes(mesAtual.getFullYear(), mesAtual.getMonth(), contratos)
+      if (criadas === 0) {
+        setError('Todas as faturas desse mês já foram geradas.')
+      }
+    } catch (err) {
+      setError('Erro: ' + (err as Error).message)
     }
 
     setGenerating(false)
