@@ -612,7 +612,7 @@ export default function DespesasPage() {
             <StatCard label="Pendente" value={fmtDec(statsMes.pendente)} color="#8a5a00" />
             <div style={{ background: isLucro ? '#e0ebd9' : '#f5d6cd', padding: '18px 20px' }}>
               <div style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: isLucro ? 'var(--green)' : 'var(--accent)', marginBottom: '6px', fontWeight: 700 }}>
-                {isLucro ? '▲ Lucro' : '▼ Prejuízo'}
+                {isLucro ? '▲ Lucro' : '▼ Negativo'}
               </div>
               <div className="font-serif" style={{ fontSize: 'clamp(16px, 3vw, 26px)', fontWeight: 700, color: isLucro ? 'var(--green)' : 'var(--accent)' }}>
                 {isLucro ? '+' : ''}{fmt(mesAtualData.resultado)}
