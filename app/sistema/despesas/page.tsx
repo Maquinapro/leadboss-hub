@@ -48,6 +48,7 @@ type Despesa = {
   data_vencimento: string | null
   data_pagamento: string | null
   recorrente: boolean
+  origem_recorrente_id: string | null
   conta_corrente_id: string | null
   cartao?: { nome: string; cor: string } | null
   conta_corrente?: { nome: string; banco: string; tipo: string } | null
@@ -181,6 +182,47 @@ export default function DespesasPage() {
     init()
   }, [mesAtual])
 
+  // Molde recorrente (recorrente=true, sem origem_recorrente_id) gera uma cobrança
+  // própria por mês (com origem_recorrente_id apontando pra ele), pra status de pago/
+  // pendente não ficar compartilhado entre meses diferentes. O próprio mês de origem do
+  // molde não precisa de cobrança gerada: ele mesmo já representa aquele mês.
+  async function criarInstanciasRecorrentesFaltantes(ano: number, mes: number, despesasAtuais: Despesa[]) {
+    const mesIniISO = toISODate(new Date(ano, mes, 1))
+    const ultimoDia = new Date(ano, mes + 1, 0).getDate()
+
+    const moldes = despesasAtuais.filter((d) => d.recorrente && !d.origem_recorrente_id)
+    const novasInstancias = moldes
+      .filter((t) => {
+        const inicio = new Date(t.mes_inicio + 'T00:00:00')
+        const proprioMes = inicio.getFullYear() === ano && inicio.getMonth() === mes
+        if (proprioMes) return false // é o próprio molde quem representa esse mês
+        return new Date(ano, mes, 1) >= new Date(inicio.getFullYear(), inicio.getMonth(), 1)
+      })
+      .filter((t) => !despesasAtuais.some((d) => d.origem_recorrente_id === t.id && d.mes_inicio === mesIniISO))
+      .map((t) => {
+        const diaTemplate = t.data_vencimento ? new Date(t.data_vencimento + 'T00:00:00').getDate() : null
+        return {
+          descricao: t.descricao,
+          categoria: t.categoria,
+          origem: t.origem,
+          forma_pagamento: t.forma_pagamento,
+          cartao_id: t.cartao_id,
+          valor_total: Number(t.valor_total) / t.parcelas,
+          parcelas: 1,
+          mes_inicio: mesIniISO,
+          data_vencimento: diaTemplate ? toISODate(new Date(ano, mes, Math.min(diaTemplate, ultimoDia))) : null,
+          recorrente: true,
+          observacoes: t.observacoes,
+          status: 'pendente',
+          origem_recorrente_id: t.id,
+        }
+      })
+
+    if (novasInstancias.length > 0) {
+      await supabase.from('despesas').insert(novasInstancias)
+    }
+  }
+
   async function loadAll() {
     setLoading(true)
     const ano = mesAtual.getFullYear()
@@ -189,6 +231,15 @@ export default function DespesasPage() {
     // 6 meses atrás para o gráfico
     const seisAtras = new Date(ano, mes - 5, 1)
     const seisAtrasISO = toISODate(seisAtras)
+
+    const { data: despesasIniciais } = await supabase
+      .from('despesas')
+      .select('id, valor_total, parcelas, mes_inicio, status, recorrente, origem_recorrente_id, descricao, categoria, origem, forma_pagamento, cartao_id, data_vencimento, observacoes')
+      .order('mes_inicio')
+
+    if (despesasIniciais) {
+      await criarInstanciasRecorrentesFaltantes(ano, mes, despesasIniciais as Despesa[])
+    }
 
     const [
       { data: cartoesData },
@@ -202,7 +253,7 @@ export default function DespesasPage() {
       supabase.from('despesas')
         .select('*, cartao:cartoes(nome, cor), conta_corrente:contas_correntes(nome, banco, tipo)')
         .order('mes_inicio'),
-      supabase.from('despesas').select('id, valor_total, parcelas, mes_inicio, status, recorrente').order('mes_inicio'),
+      supabase.from('despesas').select('id, valor_total, parcelas, mes_inicio, status, recorrente, origem_recorrente_id').order('mes_inicio'),
       supabase.from('pagamentos')
         .select('mes_referencia, valor, status')
         .eq('status', 'pago')
@@ -215,11 +266,14 @@ export default function DespesasPage() {
     if (todasData) setTodasDespesas(todasData as Despesa[])
 
     if (despesasData) {
-      const atual = new Date(ano, mes, 1)
       const doMes = (despesasData as Despesa[]).filter((d) => {
         const inicio = new Date(d.mes_inicio + 'T00:00:00')
+        if (d.recorrente) {
+          // molde ou cobrança gerada: cada um representa um único mês, o seu próprio mes_inicio
+          return inicio.getFullYear() === ano && inicio.getMonth() === mes
+        }
+        const atual = new Date(ano, mes, 1)
         if (atual < inicio) return false
-        if (d.recorrente) return true // recorrente: aparece em todo mês a partir do início, sem data-fim
         const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
         return atual <= fim
       })
@@ -258,8 +312,25 @@ export default function DespesasPage() {
       const despesaMes = todasDespesas.reduce((s, d) => {
         const inicio = new Date(d.mes_inicio + 'T00:00:00')
         const atual = new Date(ano, mes, 1)
+        const mesmoMes = inicio.getFullYear() === ano && inicio.getMonth() === mes
+
+        if (d.recorrente) {
+          if (d.origem_recorrente_id) {
+            // cobrança já gerada pro mês: conta só no seu próprio mês
+            return mesmoMes ? s + Number(d.valor_total) / d.parcelas : s
+          }
+          // molde: conta no próprio mês; nos seguintes, só projeta se ainda não foi gerada a cobrança
+          if (mesmoMes) return s + Number(d.valor_total) / d.parcelas
+          if (atual < inicio) return s
+          const jaGerada = todasDespesas.some((x) => {
+            if (x.origem_recorrente_id !== d.id) return false
+            const xInicio = new Date(x.mes_inicio + 'T00:00:00')
+            return xInicio.getFullYear() === ano && xInicio.getMonth() === mes
+          })
+          return jaGerada ? s : s + Number(d.valor_total) / d.parcelas
+        }
+
         if (atual < inicio) return s
-        if (d.recorrente) return s + Number(d.valor_total) / d.parcelas
         const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
         if (atual <= fim) return s + Number(d.valor_total) / d.parcelas
         return s

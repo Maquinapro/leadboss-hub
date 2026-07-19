@@ -32,3 +32,19 @@ ALTER TABLE despesas
 -- ============================================================
 -- PRONTO. Pode fechar o SQL Editor.
 -- ============================================================
+
+-- ============================================================
+-- MIGRAÇÃO 2026-07-19: Contas a Pagar — status por mês em despesas recorrentes
+-- Rodar no SQL Editor do Supabase Dashboard
+-- ============================================================
+
+-- Liga cada cobrança mensal gerada de uma despesa recorrente de volta
+-- pra despesa "molde" que a originou. Molde = recorrente sem essa coluna
+-- preenchida; cobrança do mês = tem essa coluna apontando pro molde.
+-- ON DELETE CASCADE: excluir o molde apaga as cobranças mensais geradas dele.
+ALTER TABLE despesas
+  ADD COLUMN IF NOT EXISTS origem_recorrente_id UUID REFERENCES despesas(id) ON DELETE CASCADE;
+
+-- ============================================================
+-- PRONTO. Pode fechar o SQL Editor.
+-- ============================================================
