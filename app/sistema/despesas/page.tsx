@@ -182,21 +182,30 @@ export default function DespesasPage() {
     init()
   }, [mesAtual])
 
-  // Molde recorrente (recorrente=true, sem origem_recorrente_id) gera uma cobrança
-  // própria por mês (com origem_recorrente_id apontando pra ele), pra status de pago/
-  // pendente não ficar compartilhado entre meses diferentes. O próprio mês de origem do
-  // molde não precisa de cobrança gerada: ele mesmo já representa aquele mês.
-  async function criarInstanciasRecorrentesFaltantes(ano: number, mes: number, despesasAtuais: Despesa[]) {
+  // Despesa recorrente OU parcelada (sem origem_recorrente_id) é o "molde": guarda a
+  // definição (valor, categoria, dia de vencimento...). Cada mês em que ela aparece — exceto
+  // o próprio mes_inicio, que o molde já representa — ganha sua própria cobrança gerada
+  // (origem_recorrente_id apontando pro molde), com status e vencimento independentes.
+  // Isso evita que marcar uma parcela ou uma recorrente como paga (ou deixá-la vencida)
+  // "vaze" pros outros meses da mesma série.
+  async function criarCobrancasFaltantes(ano: number, mes: number, despesasAtuais: Despesa[]) {
     const mesIniISO = toISODate(new Date(ano, mes, 1))
     const ultimoDia = new Date(ano, mes + 1, 0).getDate()
+    const atual = new Date(ano, mes, 1)
 
-    const moldes = despesasAtuais.filter((d) => d.recorrente && !d.origem_recorrente_id)
+    const moldes = despesasAtuais.filter((d) => !d.origem_recorrente_id && (d.recorrente || d.parcelas > 1))
     const novasInstancias = moldes
       .filter((t) => {
         const inicio = new Date(t.mes_inicio + 'T00:00:00')
         const proprioMes = inicio.getFullYear() === ano && inicio.getMonth() === mes
         if (proprioMes) return false // é o próprio molde quem representa esse mês
-        return new Date(ano, mes, 1) >= new Date(inicio.getFullYear(), inicio.getMonth(), 1)
+        if (atual < new Date(inicio.getFullYear(), inicio.getMonth(), 1)) return false
+        if (!t.recorrente) {
+          // parcelada: não gerar cobrança além da última parcela
+          const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (t.parcelas - 1), 1)
+          if (atual > fim) return false
+        }
+        return true
       })
       .filter((t) => !despesasAtuais.some((d) => d.origem_recorrente_id === t.id && d.mes_inicio === mesIniISO))
       .map((t) => {
@@ -207,11 +216,11 @@ export default function DespesasPage() {
           origem: t.origem,
           forma_pagamento: t.forma_pagamento,
           cartao_id: t.cartao_id,
-          valor_total: Number(t.valor_total) / t.parcelas,
-          parcelas: 1,
+          valor_total: t.valor_total,
+          parcelas: t.parcelas,
           mes_inicio: mesIniISO,
           data_vencimento: diaTemplate ? toISODate(new Date(ano, mes, Math.min(diaTemplate, ultimoDia))) : null,
-          recorrente: true,
+          recorrente: t.recorrente,
           observacoes: t.observacoes,
           status: 'pendente',
           origem_recorrente_id: t.id,
@@ -238,7 +247,7 @@ export default function DespesasPage() {
       .order('mes_inicio')
 
     if (despesasIniciais) {
-      await criarInstanciasRecorrentesFaltantes(ano, mes, despesasIniciais as Despesa[])
+      await criarCobrancasFaltantes(ano, mes, despesasIniciais as Despesa[])
     }
 
     const [
@@ -256,7 +265,7 @@ export default function DespesasPage() {
       supabase.from('despesas').select('id, valor_total, parcelas, mes_inicio, status, recorrente, origem_recorrente_id').order('mes_inicio'),
       supabase.from('pagamentos')
         .select('mes_referencia, valor, status')
-        .eq('status', 'pago')
+        .neq('status', 'cancelado')
         .gte('mes_referencia', seisAtrasISO),
     ])
 
@@ -266,16 +275,11 @@ export default function DespesasPage() {
     if (todasData) setTodasDespesas(todasData as Despesa[])
 
     if (despesasData) {
+      // Com a materialização acima, toda despesa (avulsa, parcela ou cobrança recorrente
+      // do mês) representa exatamente um mês: o seu próprio mes_inicio.
       const doMes = (despesasData as Despesa[]).filter((d) => {
         const inicio = new Date(d.mes_inicio + 'T00:00:00')
-        if (d.recorrente) {
-          // molde ou cobrança gerada: cada um representa um único mês, o seu próprio mes_inicio
-          return inicio.getFullYear() === ano && inicio.getMonth() === mes
-        }
-        const atual = new Date(ano, mes, 1)
-        if (atual < inicio) return false
-        const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
-        return atual <= fim
+        return inicio.getFullYear() === ano && inicio.getMonth() === mes
       })
       setDespesas(doMes)
     }
@@ -303,37 +307,43 @@ export default function DespesasPage() {
     return meses.map(({ ano, mes }) => {
       const mesISO = `${ano}-${String(mes + 1).padStart(2, '0')}-01`
 
-      // Receita: pagamentos pagos nesse mês
+      // Receita prevista: todas as faturas daquele mês (pagas, pendentes ou atrasadas),
+      // não só o que já entrou de fato
       const receita = pagamentos6m
-        .filter(p => p.mes_referencia === mesISO && p.status === 'pago')
+        .filter(p => p.mes_referencia === mesISO)
         .reduce((s, p) => s + Number(p.valor), 0)
 
-      // Despesa: fatia de cada despesa que cai nesse mês
+      // Despesa prevista: fatia de cada despesa que cai nesse mês
       const despesaMes = todasDespesas.reduce((s, d) => {
         const inicio = new Date(d.mes_inicio + 'T00:00:00')
         const atual = new Date(ano, mes, 1)
         const mesmoMes = inicio.getFullYear() === ano && inicio.getMonth() === mes
+        const valorFatia = Number(d.valor_total) / d.parcelas
 
-        if (d.recorrente) {
-          if (d.origem_recorrente_id) {
-            // cobrança já gerada pro mês: conta só no seu próprio mês
-            return mesmoMes ? s + Number(d.valor_total) / d.parcelas : s
-          }
-          // molde: conta no próprio mês; nos seguintes, só projeta se ainda não foi gerada a cobrança
-          if (mesmoMes) return s + Number(d.valor_total) / d.parcelas
-          if (atual < inicio) return s
-          const jaGerada = todasDespesas.some((x) => {
-            if (x.origem_recorrente_id !== d.id) return false
-            const xInicio = new Date(x.mes_inicio + 'T00:00:00')
-            return xInicio.getFullYear() === ano && xInicio.getMonth() === mes
-          })
-          return jaGerada ? s : s + Number(d.valor_total) / d.parcelas
+        if (d.origem_recorrente_id) {
+          // cobrança já gerada pro mês: conta só no seu próprio mês
+          return mesmoMes ? s + valorFatia : s
         }
 
+        const ehMolde = d.recorrente || d.parcelas > 1
+        if (!ehMolde) {
+          return mesmoMes ? s + valorFatia : s
+        }
+
+        // molde (recorrente ou parcelado): conta no próprio mês
+        if (mesmoMes) return s + valorFatia
         if (atual < inicio) return s
-        const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
-        if (atual <= fim) return s + Number(d.valor_total) / d.parcelas
-        return s
+        if (!d.recorrente) {
+          const fim = new Date(inicio.getFullYear(), inicio.getMonth() + (d.parcelas - 1), 1)
+          if (atual > fim) return s
+        }
+        // ainda dentro do alcance: só projeta se a cobrança daquele mês ainda não foi gerada
+        const jaGerada = todasDespesas.some((x) => {
+          if (x.origem_recorrente_id !== d.id) return false
+          const xInicio = new Date(x.mes_inicio + 'T00:00:00')
+          return xInicio.getFullYear() === ano && xInicio.getMonth() === mes
+        })
+        return jaGerada ? s : s + valorFatia
       }, 0)
 
       const resultado = receita - despesaMes
@@ -617,8 +627,9 @@ export default function DespesasPage() {
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderRadius: '8px', padding: '20px 24px', marginBottom: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
-                <div style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', fontWeight: 600, marginBottom: '4px' }}>Visão dos últimos 6 meses</div>
+                <div style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink-muted)', fontWeight: 600, marginBottom: '4px' }}>Previsão · últimos 6 meses</div>
                 <h3 className="font-serif" style={{ fontSize: '20px', fontWeight: 600 }}>Receita vs Despesa</h3>
+                <p style={{ fontSize: '12px', color: 'var(--ink-muted)', marginTop: '2px' }}>Considera tudo que foi faturado no mês, pago ou não</p>
               </div>
               <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--ink-muted)' }}>
                 <span><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: 'var(--green)', marginRight: '5px' }} />Receita</span>
