@@ -224,7 +224,7 @@ export default function PagamentosPage() {
   }, [mesAtual])
 
   const stats = useMemo(() => {
-    const previsto = pagamentos.reduce((s, p) => s + Number(p.valor || 0), 0)
+    const previsto = pagamentos.filter((p) => p.status !== 'cancelado').reduce((s, p) => s + Number(p.valor || 0), 0)
     const recebido = pagamentos.filter((p) => p.status === 'pago').reduce((s, p) => s + Number(p.valor), 0)
     const pendente = pagamentos.filter((p) => p.status === 'pendente').reduce((s, p) => s + Number(p.valor), 0)
     const atrasado = pagamentos.filter((p) => p.status === 'atrasado').reduce((s, p) => s + Number(p.valor), 0)
