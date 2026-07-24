@@ -264,6 +264,23 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
       .in('status', ['pendente', 'atrasado'])
       .gte('mes_referencia', mesAtualISO)
 
+    // Se esse era o último contrato ativo do cliente, o cliente vira cancelado também —
+    // sem isso ele ficava com R$0/mês mas ainda marcado ATIVO na listagem
+    const { count: restantes } = await supabase
+      .from('contratos')
+      .select('id', { count: 'exact', head: true })
+      .eq('cliente_id', id)
+      .eq('ativo', true)
+
+    if (!restantes && cliente?.status !== 'cancelado') {
+      const motivo = window.prompt('Esse era o último contrato ativo — o cliente vai ser marcado como cancelado. Motivo da saída (opcional):') || null
+      await supabase.from('clientes').update({
+        status: 'cancelado',
+        data_saida: hoje.toISOString().split('T')[0],
+        motivo_saida: motivo,
+      }).eq('id', id)
+    }
+
     const { data: clienteRefresh } = await supabase.from('clientes_completo').select('*').eq('id', id).single()
     if (clienteRefresh) setCliente(clienteRefresh as Cliente)
     await loadContratos()
