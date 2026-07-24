@@ -250,8 +250,20 @@ export default function ClienteDetalhePage({ params }: { params: Promise<{ id: s
   }
 
   async function handleDesativarContrato(contratoId: string) {
-    if (!confirm('Desativar esse contrato? Ele não gerará mais faturas.')) return
+    if (!confirm('Desativar esse contrato? Ele não gerará mais faturas, e as faturas em aberto do mês atual em diante serão canceladas.')) return
     await supabase.from('contratos').update({ ativo: false }).eq('id', contratoId)
+
+    // Faturas já materializadas antes da desativação (mês atual em diante, ainda não pagas)
+    // não somem sozinhas só porque o contrato ficou inativo — cancela pra não ficarem
+    // cobrando algo que não vai mais existir
+    const hoje = new Date()
+    const mesAtualISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`
+    await supabase.from('pagamentos')
+      .update({ status: 'cancelado' })
+      .eq('contrato_id', contratoId)
+      .in('status', ['pendente', 'atrasado'])
+      .gte('mes_referencia', mesAtualISO)
+
     const { data: clienteRefresh } = await supabase.from('clientes_completo').select('*').eq('id', id).single()
     if (clienteRefresh) setCliente(clienteRefresh as Cliente)
     await loadContratos()
