@@ -136,7 +136,11 @@ export default function PagamentosPage() {
       })
 
     if (novasFaturas.length === 0) return 0
-    const { error: insertError } = await supabase.from('pagamentos').insert(novasFaturas)
+    // upsert + índice único (contrato_id, mes_referencia): se dois carregamentos rodarem
+    // ao mesmo tempo (outra aba, navegação rápida), o banco descarta a fatura duplicada
+    const { error: insertError } = await supabase
+      .from('pagamentos')
+      .upsert(novasFaturas, { onConflict: 'contrato_id,mes_referencia', ignoreDuplicates: true })
     if (insertError) throw insertError
     return novasFaturas.length
   }
@@ -177,12 +181,16 @@ export default function PagamentosPage() {
       setContratos(contratosAtivos)
     }
 
-    // Gera automaticamente a fatura do mês pra cada contrato ativo que ainda não tem cobrança nesse mês,
-    // pra lista de baixo já vir atualizada ao navegar de mês sem precisar clicar em "Gerar faturas"
-    try {
-      await criarFaturasFaltantes(ano, mes, contratosAtivos)
-    } catch (err) {
-      setError('Erro ao gerar faturas do mês: ' + (err as Error).message)
+    // Gera automaticamente a fatura do mês pra cada contrato ativo que ainda não tem cobrança
+    // nesse mês — só do mês corrente em diante; mês passado é histórico e não ganha fatura
+    // retroativa automática (o botão "Gerar faturas do mês" continua permitindo, se precisar)
+    const mesCorrente = getFirstDayOfMonth(new Date().getFullYear(), new Date().getMonth())
+    if (mesAtual >= mesCorrente) {
+      try {
+        await criarFaturasFaltantes(ano, mes, contratosAtivos)
+      } catch (err) {
+        setError('Erro ao gerar faturas do mês: ' + (err as Error).message)
+      }
     }
 
     const { data: pagamentosData } = await supabase

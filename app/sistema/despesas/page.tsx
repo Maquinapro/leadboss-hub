@@ -193,6 +193,10 @@ export default function DespesasPage() {
     const ultimoDia = new Date(ano, mes + 1, 0).getDate()
     const atual = new Date(ano, mes, 1)
 
+    // Só materializa do mês corrente em diante: mês passado é histórico,
+    // gerar cobrança retroativa só cria pendência fantasma em mês já fechado
+    if (atual < new Date(hoje.getFullYear(), hoje.getMonth(), 1)) return
+
     const moldes = despesasAtuais.filter((d) => !d.origem_recorrente_id && (d.recorrente || d.parcelas > 1))
     const novasInstancias = moldes
       .filter((t) => {
@@ -228,7 +232,11 @@ export default function DespesasPage() {
       })
 
     if (novasInstancias.length > 0) {
-      await supabase.from('despesas').insert(novasInstancias)
+      // upsert + índice único (origem_recorrente_id, mes_inicio): se dois carregamentos
+      // rodarem ao mesmo tempo (outra aba, navegação rápida), o banco descarta o duplicado
+      await supabase
+        .from('despesas')
+        .upsert(novasInstancias, { onConflict: 'origem_recorrente_id,mes_inicio', ignoreDuplicates: true })
     }
   }
 
