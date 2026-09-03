@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import WhatsAppCTA from '@/components/WhatsAppCTA'
 import GlobeThree from '@/components/GlobeThree'
+import NotFoundTV from '@/components/NotFoundTV'
 
 // Perguntas frequentes — conteúdo extraível pela IA do Google (FAQPage schema)
 const FAQS: { q: string; a: string }[] = [
@@ -105,13 +106,13 @@ export default function HomePage() {
         <div className="hero-bg-fade" aria-hidden="true" />
 
         <div style={{ position: 'relative', maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
-          <div className="hero-tag" style={{
-            display: 'inline-flex', alignItems: 'center', gap: '9px',
-            marginBottom: '28px', padding: '9px 18px', borderRadius: '999px',
-            border: '1px solid var(--line)', background: 'var(--bg-card)',
-          }}>
-            <span className="hero-tag-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)' }} />
-            <span className="brand-caps" style={{ color: 'var(--accent)', fontSize: '12px' }}>Tráfego pago para negócios locais</span>
+          <div className="hero-tag hero-search">
+            <span className="hero-search-text">Tráfego pago para negócios locais</span>
+            <span className="hero-search-divider" aria-hidden="true" />
+            <svg className="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3.6-3.6" />
+            </svg>
           </div>
 
           <h1 className="font-serif hero-h1" style={{
@@ -542,6 +543,17 @@ export default function HomePage() {
             <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: 'var(--ink-soft)', lineHeight: 1.65, marginBottom: '32px' }}>
               Diagnóstico de copy, estrutura de oferta, prova social e CTA, tudo pensado para o seu público específico.
             </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
+              {['Captura', 'Serviço', 'Oferta', 'Agendamento'].map((tipo) => (
+                <span key={tipo} style={{
+                  fontSize: '11px', letterSpacing: '0.07em', textTransform: 'uppercase',
+                  color: 'var(--ink-muted)', background: 'var(--line-soft)',
+                  borderRadius: '3px', padding: '5px 10px',
+                }}>
+                  {tipo}
+                </span>
+              ))}
+            </div>
             <WhatsAppCTA className="btn-primary" style={{
               display: 'inline-block', padding: '14px 28px', borderRadius: '4px',
               background: 'var(--ink)', color: 'var(--bg)', fontWeight: 500, fontSize: '14px',
@@ -550,32 +562,15 @@ export default function HomePage() {
             </WhatsAppCTA>
           </div>
 
-          <div data-reveal-stagger style={{ display: 'grid', gap: '16px' }}>
-            {[
-              { titulo: 'Página de captura', desc: 'Para campanhas de geração de leads. Formulário simples, proposta clara, sem distração.' },
-              { titulo: 'Página de serviço', desc: 'Apresenta um serviço específico com profundidade, ideal para tráfego qualificado de Google.' },
-              { titulo: 'Página de oferta', desc: 'Promoção, pacote ou condição especial com urgência e prova social para acelerar a decisão.' },
-              { titulo: 'Página de agendamento', desc: 'Integrada com agenda online. O lead marca a consulta direto, sem fricção.' },
-            ].map((item) => (
-              <div key={item.titulo} className="card-hover" style={{
-                background: 'var(--bg-card)', border: '1px solid var(--line)',
-                borderRadius: '6px', padding: '20px 24px',
-                display: 'flex', gap: '16px', alignItems: 'flex-start',
-              }}>
-                <div style={{
-                  flexShrink: 0, marginTop: '2px',
-                  width: '20px', height: '20px', borderRadius: '50%',
-                  background: 'var(--accent-soft)', border: '1px solid var(--accent)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700, lineHeight: 1 }}>✓</span>
-                </div>
-                <div>
-                  <div className="font-serif" style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>{item.titulo}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--ink-soft)', lineHeight: 1.55 }}>{item.desc}</div>
-                </div>
-              </div>
-            ))}
+          <div data-reveal>
+            <NotFoundTV />
+            <p style={{
+              marginTop: '20px', textAlign: 'center',
+              fontSize: '14px', color: 'var(--ink-soft)', lineHeight: 1.6,
+              maxWidth: '320px', marginLeft: 'auto', marginRight: 'auto',
+            }}>
+              Sem uma página pra receber o clique, é isso que o seu cliente encontra.
+            </p>
           </div>
         </div>
       </section>
@@ -800,12 +795,36 @@ export default function HomePage() {
         }
         @keyframes hero-underline-grow { to { transform: scaleX(1); } }
 
-        /* ---- Hero: ponto pulsante na badge ---- */
-        @keyframes hero-dot-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50%      { opacity: 0.5; transform: scale(0.8); }
+        /* ---- Hero: kicker com cara de campo de busca (decorativo, não é input) ---- */
+        .hero-search {
+          display: inline-flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 28px;
+          padding: 9px 14px 9px 16px;
+          border: 1px solid var(--line);
+          border-radius: 5px;
+          background: var(--bg-card);
+          box-shadow: 0 1px 2px rgba(26, 26, 26, 0.04);
+          transition: border-color 0.22s ease;
         }
-        .hero-tag-dot { animation: hero-dot-pulse 2s ease-in-out infinite; }
+        .hero-search:hover { border-color: var(--ink-muted); }
+        .hero-search-text {
+          font-size: clamp(13px, 3.2vw, 15px);
+          color: var(--ink-soft);
+          white-space: nowrap;
+        }
+        .hero-search-divider {
+          width: 1px;
+          height: 20px;
+          background: var(--line);
+        }
+        .hero-search-icon {
+          width: 17px;
+          height: 17px;
+          flex-shrink: 0;
+          color: var(--accent);
+        }
 
         /* ---- Hero: entrada em cascata ---- */
         @keyframes lb-in {
@@ -901,7 +920,7 @@ export default function HomePage() {
 
         /* ---- Respeito por reduced motion ---- */
         @media (prefers-reduced-motion: reduce) {
-          .hero-tag,.hero-h1,.hero-p,.hero-cta,.hero-tag-dot { animation: none !important; opacity:1 !important; }
+          .hero-tag,.hero-h1,.hero-p,.hero-cta { animation: none !important; opacity:1 !important; }
           .hero-underline { animation: none !important; transform: scaleX(1) !important; }
           [data-reveal],[data-reveal-stagger]>* { opacity:1 !important; transform:none !important; transition:none !important; }
           .btn-primary:hover,.btn-secondary:hover,.card-hover:hover { transform:none !important; box-shadow:none !important; }
