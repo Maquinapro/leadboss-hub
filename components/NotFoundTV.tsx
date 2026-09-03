@@ -43,7 +43,7 @@ export default function NotFoundTV() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          font-size: clamp(14px, 4.2vw, 19px);
+          font-size: clamp(11px, 3.15vw, 19px);
           padding: 2.2em 0 0.6em;
         }
 
