@@ -1,8 +1,9 @@
-// TV retrô "sem sinal" — metáfora do negócio que não é encontrado sem landing page.
+// TV retrô "sem sinal" — metáfora do negócio que não é encontrado sem landing page,
+// e ilustração literal da página 404.
 // CSS puro, sem JS. Tudo em `em`, então a escala inteira vem do font-size do wrapper.
-export default function NotFoundTV() {
+export default function NotFoundTV({ size = 'md' }: { size?: 'md' | 'lg' }) {
   return (
-    <div className="lptv" aria-hidden="true">
+    <div className={size === 'lg' ? 'lptv lptv-lg' : 'lptv'} aria-hidden="true">
       <span className="lptv-mark">404</span>
 
       <div className="lptv-antenna">
@@ -46,6 +47,7 @@ export default function NotFoundTV() {
           font-size: clamp(11px, 3.15vw, 19px);
           padding: 2.2em 0 0.6em;
         }
+        .lptv-lg { font-size: clamp(13px, 5.2vw, 30px); }
 
         /* 404 de fundo */
         .lptv-mark {
@@ -219,6 +221,12 @@ export default function NotFoundTV() {
           width: 15.4em;
           height: 0.14em;
           background: #1a1a1a;
+        }
+
+        /* Na variante grande a TV ocupa quase toda a largura em tela estreita, então
+           o 404 de fundo só apareceria como fragmentos cortados nas laterais. */
+        @media (max-width: 560px) {
+          .lptv-lg .lptv-mark { display: none; }
         }
 
         @media (prefers-reduced-motion: reduce) {
